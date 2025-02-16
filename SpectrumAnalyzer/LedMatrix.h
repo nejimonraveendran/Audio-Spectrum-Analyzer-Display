@@ -1,3 +1,5 @@
+#include "crgb.h"
+#include "Framebuffer_GFX.h"
 #ifndef LedMatrix_h
 #define LedMatrix_h
 
@@ -13,6 +15,7 @@
 
 CRGB _ledsPlusSafetyPixel[ G_NUM_LEDS + 1];
 CRGB* const LEDs( _ledsPlusSafetyPixel + 1);
+
 
 struct ColPeak{
   uint8_t col;
@@ -43,6 +46,12 @@ class LedMatrix {
       }
     }
 
+    uint16_t xyToIndex( uint8_t x, uint8_t y){
+      uint16_t i;  
+      i = (x * G_NUM_LEVELS) + y;
+      return i;
+    }
+
   public:
     LedMatrix(){
       setupLedDefaultColors();
@@ -58,13 +67,37 @@ class LedMatrix {
       FastLED.show();
     }
 
+    void setText(uint16_t cursorX, String text){
+      //CRGB ledColors[xyToIndex(3, 10)];
+      
+      uint16_t x = 1;
+      
+      //2
+      LEDs[xyToIndex(x+2, 0)] = CRGB::Red;
+      LEDs[xyToIndex(x+1, 0)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 0)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 1)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 2)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 3)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 4)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 5)] = CRGB::Red;
+      LEDs[xyToIndex(x+1, 5)] = CRGB::Red;
+      LEDs[xyToIndex(x+2, 5)] = CRGB::Red;
+      LEDs[xyToIndex(x+2, 6)] = CRGB::Red;
+      LEDs[xyToIndex(x+2, 7)] = CRGB::Red;
+      LEDs[xyToIndex(x+2, 8)] = CRGB::Red;
+      LEDs[xyToIndex(x+2, 9)] = CRGB::Red;
+      LEDs[xyToIndex(x+1, 9)] = CRGB::Red;
+      LEDs[xyToIndex(x+0, 9)] = CRGB::Red;
+      
 
-    uint16_t xyToIndex( uint8_t x, uint8_t y){
-      uint16_t i;  
-      i = (x * G_NUM_LEVELS) + y;
-      return i;
+      // for(uint16_t x=cursorX; x<cursorX+2; x++){
+      //   for(uint16_t y=0; y<G_NUM_LEVELS; y++){
+
+      //   }
+      // }
+      
     }
-
 
     void setLEDColPeak(uint8_t col, uint8_t value){ //col = x, value = y
       uint8_t topRowIndex = G_NUM_LEVELS - 1; //17

@@ -15,9 +15,9 @@ class LedServer {
   private:
     static TaskHandle_t _webserverTask; // setting up the task handler for webserver 
     static bool _canUpdateClients;
-    //static String _bandLabels[G_NUM_BANDS];
     static WebServer _server;
     static LedMatrix _ledMatrix;    
+    static uint16_t mode; //1 = music display, 2 = show IP
 
     static void uiTask(void* pvParameters ) {
       Serial.print("Webserver task is  running on core ");
@@ -29,35 +29,39 @@ class LedServer {
         _server.handleClient();
 
         if (_canUpdateClients) {
-          float _freqBinsOld[G_NUM_BANDS];                                  //*
-          float _freqBinsNew[G_NUM_BANDS];                                  //*
-          
-          // lets smooth out the data we send
-          for (int i = 0; i < G_NUM_BANDS; i++) {
-            _freqBinsNew[i] = g_freqBins[i];
-            
-            if (_freqBinsNew[i] < _freqBinsOld[i]) {
-              g_freqBins[i] = max(_freqBinsOld[i] - g_speedfilter, _freqBinsNew[i]);
-              // if (g_freqBins[i] > 1.0) {
-              //   g_freqBins[i] = 1; //to prevent glitch when changing number of channels during runtime
-              // } 
-            }else if (_freqBinsNew[i] > _freqBinsOld[i]) {
-              g_freqBins[i] = _freqBinsNew[i];
-            }
-            
-            _freqBinsOld[i] = g_freqBins[i];
 
-          } 
-
-          // done smoothing now send the data
-          sendDataToClients(); // webbrowser
+          //mode = 2;
+          if(mode == 1){
+            smoothenMusicData(g_speedfilter);
+            sendMusicDataToLEDMatrix();
+          }else if (mode == 2){
+            _ledMatrix.setText(0, "132");
+          }
 
           _canUpdateClients = false;
         }
       }
     }
 
-    static void sendDataToClients() {
+    static void smoothenMusicData(float speedFilter){
+      float _freqBinsOld[G_NUM_BANDS];
+      float _freqBinsNew[G_NUM_BANDS];
+
+      // lets smooth out the data we send
+      for (int i = 0; i < G_NUM_BANDS; i++) {
+        _freqBinsNew[i] = g_freqBins[i];
+        
+        if (_freqBinsNew[i] < _freqBinsOld[i]) {
+          g_freqBins[i] = max(_freqBinsOld[i] - speedFilter, _freqBinsNew[i]);
+        }else if (_freqBinsNew[i] > _freqBinsOld[i]) {
+          g_freqBins[i] = _freqBinsNew[i];
+        }        
+        _freqBinsOld[i] = g_freqBins[i];
+      } 
+    }
+
+    static void sendMusicDataToLEDMatrix() {
+      //set LED columns
       for (int col = 0; col < G_NUM_BANDS; col++) {
         uint8_t level = g_freqBins[col] * 100;
         uint8_t value = map(level, 0, 100, 0, G_NUM_LEVELS);
@@ -189,6 +193,8 @@ WebServer LedServer::_server(80);
 bool LedServer::_canUpdateClients = false;
 TaskHandle_t LedServer::_webserverTask = NULL;    
 LedMatrix LedServer::_ledMatrix;
+uint16_t LedServer::mode = 1;
+
 
 #endif
 

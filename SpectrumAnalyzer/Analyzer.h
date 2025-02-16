@@ -66,7 +66,7 @@ class Analyzer{
       err = i2s_driver_install(I2S_NUM_0, &i2s_config,  0, NULL);  //step 2
   
       if (err != ESP_OK) {
-        Serial.printf("Failed installing driver: %d\n", err);
+        Serial.printf("Failed installing i2s driver: %d\n", err);
         while (true);
       }
 
@@ -116,6 +116,7 @@ class Analyzer{
       _fft.Compute(_vReal, _vImag, SAMPLE_BLOCK, FFT_FORWARD);
       _fft.ComplexToMagnitude(_vReal, _vImag, SAMPLE_BLOCK);
       _fft.MajorPeak(_vReal, SAMPLE_BLOCK, _samplingFrequency);
+
       for (int i = 0; i < G_NUM_BANDS; i++) {
         g_freqBins[i] = 0;
       }
@@ -131,7 +132,10 @@ class Analyzer{
             } 
             iBand++;
           }
-          if (iBand > G_NUM_BANDS)iBand = G_NUM_BANDS;
+
+          if (iBand > G_NUM_BANDS)
+            iBand = G_NUM_BANDS;
+
           g_freqBins[iBand] += _vReal[i];
         }
       }
