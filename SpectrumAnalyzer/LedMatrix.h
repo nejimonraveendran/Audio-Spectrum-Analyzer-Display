@@ -1,3 +1,4 @@
+#include "FastLED.h"
 #include "crgb.h"
 #include "Framebuffer_GFX.h"
 #ifndef LedMatrix_h
@@ -67,36 +68,14 @@ class LedMatrix {
       FastLED.show();
     }
 
-    void setText(uint16_t cursorX, String text){
-      //CRGB ledColors[xyToIndex(3, 10)];
-      
-      uint16_t x = 1;
-      
-      //2
-      LEDs[xyToIndex(x+2, 0)] = CRGB::Red;
-      LEDs[xyToIndex(x+1, 0)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 0)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 1)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 2)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 3)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 4)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 5)] = CRGB::Red;
-      LEDs[xyToIndex(x+1, 5)] = CRGB::Red;
-      LEDs[xyToIndex(x+2, 5)] = CRGB::Red;
-      LEDs[xyToIndex(x+2, 6)] = CRGB::Red;
-      LEDs[xyToIndex(x+2, 7)] = CRGB::Red;
-      LEDs[xyToIndex(x+2, 8)] = CRGB::Red;
-      LEDs[xyToIndex(x+2, 9)] = CRGB::Red;
-      LEDs[xyToIndex(x+1, 9)] = CRGB::Red;
-      LEDs[xyToIndex(x+0, 9)] = CRGB::Red;
-      
-
-      // for(uint16_t x=cursorX; x<cursorX+2; x++){
-      //   for(uint16_t y=0; y<G_NUM_LEVELS; y++){
-
-      //   }
-      // }
-      
+    void doDemo(CRGB color){            
+      for(uint16_t i=0; i<G_NUM_LEDS; i++){
+        LEDs[i] = color;
+        updateLEDs();
+        delay(10);
+      }        
+      delay(50);
+      FastLED.clear();
     }
 
     void setLEDColPeak(uint8_t col, uint8_t value){ //col = x, value = y
@@ -140,7 +119,6 @@ class LedMatrix {
         }
       }
     }
-
 
     void setLEDColumn(uint8_t col, uint8_t value) {
       uint16_t topRowIndex = G_NUM_LEVELS - 1;

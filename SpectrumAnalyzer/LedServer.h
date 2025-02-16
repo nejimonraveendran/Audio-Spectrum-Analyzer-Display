@@ -9,7 +9,8 @@
 #include <Ticker.h>
 #include "LedMatrix.h"
 #include "Common.h"
-#include <ArduinoJson.h>
+#include "WifiConnection.h"
+#include <ArduinoJson.h> //v7.3.0
 
 class LedServer {
   private:
@@ -17,27 +18,19 @@ class LedServer {
     static bool _canUpdateClients;
     static WebServer _server;
     static LedMatrix _ledMatrix;    
-    static uint16_t mode; //1 = music display, 2 = show IP
+    static WifiConnection _wifiConn;
 
     static void uiTask(void* pvParameters ) {
       Serial.print("Webserver task is  running on core ");
       Serial.println(xPortGetCoreID());
       
       while(true) {
-        g_wifiConn.process();
-        // _webSocket.loop();
+        _wifiConn.process();
         _server.handleClient();
 
         if (_canUpdateClients) {
-
-          //mode = 2;
-          if(mode == 1){
             smoothenMusicData(g_speedfilter);
             sendMusicDataToLEDMatrix();
-          }else if (mode == 2){
-            _ledMatrix.setText(0, "132");
-          }
-
           _canUpdateClients = false;
         }
       }
@@ -87,6 +80,11 @@ class LedServer {
     }
 
     void setupServer(){
+      //set up wifi connection
+      if(_wifiConn.setupWifiConnection()){ //if successfully connected to wifi
+        _ledMatrix.doDemo(CRGB::White);
+      }
+
       //set up home page route
       _server.on("/", []() {   
         _server.send_P(200, "text/html", g_homePage);
@@ -189,11 +187,11 @@ class LedServer {
 
 };
 
+WifiConnection LedServer::_wifiConn;
 WebServer LedServer::_server(80);
 bool LedServer::_canUpdateClients = false;
 TaskHandle_t LedServer::_webserverTask = NULL;    
 LedMatrix LedServer::_ledMatrix;
-uint16_t LedServer::mode = 1;
 
 
 #endif

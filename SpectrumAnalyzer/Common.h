@@ -1,7 +1,6 @@
 #ifndef Common_h
 #define Common_h
 #include <FastLED.h> //v3.9.13
-#include "WifiConnection.h"
 
 //configuration section:
 #define G_NUM_LEVELS 10  //number of rows in the LED matrix.  If you alter this value, you must also use the same value for the variable "const _noOfRows" in the HTML text below;
@@ -9,13 +8,12 @@
 int g_BandTable[G_NUM_BANDS] =  //the following frequencies are optimized for 10-band spectrum analyzer (100Hz to 10KHz).  You can adjust it to the frequencies you would like.
 {
   //100, 250, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000
-  100, 200, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000
+  100, 250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000
 };
 
 
 //do not alter from here
 #define G_NUM_LEDS (G_NUM_BANDS * G_NUM_LEVELS)
-WifiConnection g_wifiConn;
 volatile float g_freqBins[G_NUM_BANDS];
 CRGB g_ledColors[G_NUM_LEDS]; 
 CRGB g_peakColor = CRGB(255, 255, 255); //default peak LED color; updated via portal API request.  
@@ -30,7 +28,7 @@ char g_homePage[] PROGMEM = R"=====(
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Spectrum Analyzer</title>
+    <title>Spectrum Analyzer Display</title>
       
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     
@@ -121,7 +119,7 @@ char g_homePage[] PROGMEM = R"=====(
       </style>
 </head>
 <body>
-    <h1>Spectrum Analyzer</h1>
+    <h1>Spectrum Analyzer Display</h1>
 
     <hr>
     
