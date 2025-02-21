@@ -3,12 +3,12 @@
 #include <FastLED.h> //v3.9.13
 
 //configuration section:
-#define G_NUM_LEVELS 18  //number of rows in the LED matrix.  If you alter this value, you must also use the same value for the variable "const _noOfRows" in the HTML text below;
-#define G_NUM_BANDS 16   //number of columns in the LED matrix.  If you alter this value, you must also use the same value for the variable "const _noOfcols" in the HTML text below;;
+#define G_NUM_LEVELS 10  //number of rows in the LED matrix.  If you alter this value, you must also use the same value for the variable "const _noOfRows" in the HTML text below;
+#define G_NUM_BANDS 10   //number of columns in the LED matrix.  If you alter this value, you must also use the same value for the variable "const _noOfcols" in the HTML text below;;
 int g_BandTable[G_NUM_BANDS] =  //the following frequencies are optimized for 10-band spectrum analyzer (100Hz to 10KHz).  You can adjust it to the frequencies you would like.
 {
-  //100, 250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000  //10 band
-  100, 250, 500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 14000
+  100, 250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000  //10 band
+  //100, 250, 500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 14000
 
 };
 
