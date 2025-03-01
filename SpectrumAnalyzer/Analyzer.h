@@ -60,20 +60,20 @@ class Analyzer{
       err = adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_0); // adc_gpio_init(ADC_UNIT_1, ADC_CHANNEL_0); //step 1
       if (err != ESP_OK) {
         Serial.printf("Failed setting up adc channel: %d\n", err);
-        while (true);
+        return;
       }
 
       err = i2s_driver_install(I2S_NUM_0, &i2s_config,  0, NULL);  //step 2
   
       if (err != ESP_OK) {
         Serial.printf("Failed installing i2s driver: %d\n", err);
-        while (true);
+        return;
       }
 
       err = i2s_set_adc_mode(ADC_UNIT_1, ADC1_CHANNEL_0);
       if (err != ESP_OK) {
         Serial.printf("Failed setting up adc mode: %d\n", err);
-        while (true);
+        return;
       }
       
       Serial.println("I2S driver installed.");
@@ -111,11 +111,9 @@ class Analyzer{
 
 
     void computeFFT(){
-      _fft.DCRemoval();
       _fft.Windowing(_vReal, SAMPLE_BLOCK, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
       _fft.Compute(_vReal, _vImag, SAMPLE_BLOCK, FFT_FORWARD);
       _fft.ComplexToMagnitude(_vReal, _vImag, SAMPLE_BLOCK);
-      _fft.MajorPeak(_vReal, SAMPLE_BLOCK, _samplingFrequency);
 
       for (int i = 0; i < G_NUM_BANDS; i++) {
         g_freqBins[i] = 0;
