@@ -27,7 +27,7 @@ struct ColPeak{
 
 class LedMatrix {
   private:
-    uint8_t _brightness = 10; //config
+    uint8_t _brightness = 5; //config
     uint16_t _maxCurrentDraw = 5000; //config
     ColPeak _colPeaks[G_NUM_BANDS]; //for storing the current position of peak pixels
     uint16_t _curPeakFallingInterval = g_maxPeakFallingWait; //determines peak fall down interval
