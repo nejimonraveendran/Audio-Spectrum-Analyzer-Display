@@ -7,6 +7,7 @@ LedMatrix _ledMatrix;
 Analyzer _analyzer;
 LedServer _ledServer;
 
+
 void setup() {  
   Serial.begin(115200);
   
@@ -20,4 +21,5 @@ void loop() {
   _analyzer.computeFFT();
   _ledServer.updateClients();
 }
+
 

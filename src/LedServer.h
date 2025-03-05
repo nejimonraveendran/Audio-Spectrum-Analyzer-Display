@@ -28,11 +28,11 @@ class LedServer {
         _wifiConn.process();
         _server.handleClient();
 
-        if (_canUpdateClients) {
-            smoothenMusicData(g_speedfilter);
-            sendMusicDataToLEDMatrix();
-          _canUpdateClients = false;
-        }
+        // if (_canUpdateClients) {
+        //     smoothenMusicData(g_speedfilter);
+        //     sendMusicDataToLEDMatrix();
+        //   _canUpdateClients = false;
+        // }
       }
     }
 
@@ -181,8 +181,10 @@ class LedServer {
     }
 
     void updateClients(){
-      _ledMatrix.updateLEDs();  //this update is requied to avoid random pixel color flicker  
-      _canUpdateClients = true;
+    //   _ledMatrix.updateLEDs();  //this update is requied to avoid random pixel color flicker  
+    //   _canUpdateClients = true;
+        smoothenMusicData(g_speedfilter);
+        sendMusicDataToLEDMatrix();
     }
 
 };

@@ -12,15 +12,6 @@ class WifiConnection {
   private:
     WiFiManager _wm;
     bool _wifiConnected = false;
-
-    void setupDNS(String name){
-      if (!MDNS.begin(name)) {   // Set hostname 
-        Serial.println("Error while attempting to set DNS!");
-        while(1) {
-            delay(1000);
-        } 
-      }
-    }
     
   public:
     bool setupWifiConnection(){
@@ -35,10 +26,8 @@ class WifiConnection {
       _wifiConnected = _wm.autoConnect("SpectrumAnalyzer", "");   
       if(!_wifiConnected){
         Serial.println("Failed to connect to WiFi, so starting WiFi config portal");
-        setupDNS("sadconfig");  //"http://sadconfig.local"
         _wm.setConfigPortalBlocking(true);
       }else{
-        setupDNS("sad"); //"http://sad.local"
         return true; //successfully connected and dns setup
       }
 
