@@ -27,7 +27,7 @@ struct ColPeak{
 
 class LedMatrix {
   private:
-    uint8_t _brightness = 5; //config
+    uint8_t _brightness = 20; //config
     uint16_t _maxCurrentDraw = 5000; //config
     ColPeak _colPeaks[G_NUM_BANDS]; //for storing the current position of peak pixels
     uint16_t _curPeakFallingInterval = g_maxPeakFallingWait; //determines peak fall down interval
@@ -58,11 +58,12 @@ class LedMatrix {
       FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(LEDs, G_NUM_LEDS).setCorrection(TypicalSMD5050);
       FastLED.setMaxPowerInMilliWatts(_maxCurrentDraw);
       // FastLED.setMaxRefreshRate(G_NUM_LEDS * 4);
-      FastLED.setBrightness( _brightness );
+      // FastLED.setBrightness( 10 );
       FastLED.clear();  
     }
 
     void updateLEDs(){
+      FastLED.setBrightness(_brightness);
       FastLED.show();
     }
 

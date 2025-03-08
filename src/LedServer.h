@@ -15,7 +15,7 @@
 class LedServer {
   private:
     static TaskHandle_t _webserverTask; // setting up the task handler for webserver 
-    // static bool _canUpdateClients;
+    static bool _canUpdateClients;
     static WebServer _server;
     static LedMatrix _ledMatrix;    
     static WifiConnection _wifiConn;
@@ -28,18 +28,19 @@ class LedServer {
         _wifiConn.process();
         _server.handleClient();
 
-        // if (_canUpdateClients) {
-        //     smoothenMusicData(g_speedfilter);
-        //     sendMusicDataToLEDMatrix();
-        //   _canUpdateClients = false;
-        // }
+        if (_canUpdateClients) {
+            smoothenMusicData(g_speedfilter);
+            sendMusicDataToLEDMatrix();
+          _canUpdateClients = false;
+        }
       }
     }
 
     static void smoothenMusicData(float speedFilter){
-      float _freqBinsOld[G_NUM_BANDS];
-      float _freqBinsNew[G_NUM_BANDS];
+      float _freqBinsOld[G_NUM_BANDS] = {0};
+      float _freqBinsNew[G_NUM_BANDS] = {0};
 
+    
       // lets smooth out the data we send
       for (int i = 0; i < G_NUM_BANDS; i++) {
         _freqBinsNew[i] = g_freqBins[i];
@@ -58,6 +59,7 @@ class LedServer {
       for (int col = 0; col < G_NUM_BANDS; col++) {
         uint8_t level = g_freqBins[col] * 100;
         uint8_t value = map(level, 0, 100, 0, G_NUM_LEVELS);
+        // uint8_t value = (uint8_t) g_freqBins[col];
         _ledMatrix.setLEDColumn(col, value);   
         _ledMatrix.setLEDColPeak(col, value);    
       }
@@ -181,17 +183,17 @@ class LedServer {
     }
 
     void updateClients(){
-      // _ledMatrix.updateLEDs();  //this update is requied to avoid random pixel color flicker  
-      // _canUpdateClients = true;
-        smoothenMusicData(g_speedfilter);
-        sendMusicDataToLEDMatrix();
+      _ledMatrix.updateLEDs();  //this update is requied to avoid random pixel color flicker  
+      _canUpdateClients = true;
+        // smoothenMusicData(g_speedfilter);
+        // sendMusicDataToLEDMatrix();
     }
 
 };
 
 WifiConnection LedServer::_wifiConn;
 WebServer LedServer::_server(80);
-// bool LedServer::_canUpdateClients = false;
+bool LedServer::_canUpdateClients = false;
 TaskHandle_t LedServer::_webserverTask = NULL;    
 LedMatrix LedServer::_ledMatrix;
 

@@ -45,7 +45,7 @@ class Analyzer{
         .sample_rate = _samplingFrequency,
         .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, // could only get it to work with 32bits
         .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT, // although the SEL config should be left, it seems to transmit on right
-        .communication_format = I2S_COMM_FORMAT_I2S_MSB,
+        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,     // Interrupt level 1
         .dma_buf_count = 2,                           // number of buffers
         .dma_buf_len = SAMPLE_BLOCK,                     // samples per buffer
@@ -82,6 +82,11 @@ class Analyzer{
 
       i2s_adc_enable(I2S_NUM_0);
       Serial.println("Audio input setup completed");
+
+      Serial.println(sizeof(_samples));
+  
+      // Serial.println(ARRAYSIZE(_samples));
+      
    
     }
 
@@ -106,7 +111,17 @@ class Analyzer{
       for (uint16_t i = 0; i < ARRAYSIZE(_samples); i++) {
         _vReal[i] = _offset - _samples[i];
         _vImag[i] = 0.0; //Imaginary part must be zeroed in case of looping to avoid wrong calculations and overflows
-      }      
+      }   
+
+
+      // for (int i = 0; i < ARRAYSIZE(_samples); i++)
+      // {
+      //   Serial.print(_samples[i]);
+      //   Serial.print(", ");
+      // }
+      // Serial.println();
+
+      
     }
 
 
@@ -119,6 +134,7 @@ class Analyzer{
         g_freqBins[i] = 0;
       }
       
+
       //############ Step 4: Fill the frequency bins with the FFT Samples ############
       for (int i = 2; i < SAMPLE_BLOCK / 2; i++) {
         if (_vReal[i] > _noiseThreshold) {
@@ -138,9 +154,8 @@ class Analyzer{
         }
       }
 
-
       //############ Step 5: Averaging and making it all fit on screen
-      static float lastAllBandsPeak = 0.0f;
+      float lastAllBandsPeak = 0.0f;
       float allBandsPeak = 0;
       
       for (int i = 0; i < G_NUM_BANDS; i++) {
@@ -161,7 +176,9 @@ class Analyzer{
       } 
 
       for (int i = 0; i < G_NUM_BANDS; i++) {
-        g_freqBins[i] /= (allBandsPeak * 1.0f);
+         g_freqBins[i] /= (allBandsPeak * 1.0f);
+        //g_freqBins[i] /= (allBandsPeak * G_NUM_LEVELS);
+
       }
 
     }
