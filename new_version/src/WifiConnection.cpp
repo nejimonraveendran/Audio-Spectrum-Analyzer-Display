@@ -21,7 +21,7 @@ bool WifiConnection::setupWifiConnection(){
       setupDNS("sadconfig");  //"http://sadconfig.local"
       _wm.setConfigPortalBlocking(true);
     }else{
-      setupDNS("sad"); //"http://sad.local"
+      setupDNS("sadbig"); //"http://sad.local"
       return true; //successfully connected and dns setup
     }
   

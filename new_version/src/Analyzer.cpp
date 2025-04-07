@@ -86,7 +86,17 @@ void Analyzer::readAudioSamples(){
     for (uint16_t i = 0; i < _sampleSize; i++) {
       _vReal[i] = _offset - _samples[i]; //real part of the complex numbers returned
       _vImag[i] = 0.0; //We do not need imaginary part
+
+    //   double normalizedValue = ((_samples[i] / 4095.0f) * 2.0f) - 1.0f;
+    //   _vReal[i] = normalizedValue; //real part of the complex numbers returned
+    //   _vImag[i] = 0.0; //We do not need imaginary part
+
+        // Serial.print(normalizedValue);
+        // Serial.print(", ");
+
     }   
+
+    // Serial.println();
 }
 
 
@@ -110,32 +120,24 @@ void Analyzer::putIntoFrequencyBands(){
         this->_freqBands[i] = 0;
     }
     
-    //loop over the samples, find the frequency components in the samples, match to the band table, and add the matching frequencies into frequency bands array.
+    //in FFT, based on the sampling frequency and the number of samples, there will be a fixed number of frequency components (aka bins resolution)
+    //for 1024 audio samples at a sampling frequency of 44100 Hz, there will be 513 samples from 0 Hz to 220500 Hz (formula: no.of bins = (no.of samples/2) + 1)
+    //loop over half of samples (only first half is usable), find the frequency components in the samples, match to the band table, and add the matching frequencies into frequency bands array.
     for (unsigned short i = 2; i < this->_sampleSize / 2; i++) {
         if (this->_vReal[i] > _noiseThreshold) { //try to ignore any static noise component in the audio.
-            int freq = this->getCurrentFreqBin(i); //find the bin frequency in Hz for the bin index ()
+            int freq =  i * (this->_samplingFrequency / this->_sampleSize); //find the frequency bin at this index position 
      
             //loop over the bands. If the current bin frequency is in the range of the value provided in the band table, add the corresponding real number to the frequency band. 
             for (unsigned short b = 0; b < this->_noOfBands; b++)
             {
-                if(freq < this->_bandTable[b]){
+                int startFreq = b == 0 ? 0 : _bandTable[b-1];
+                int endFreq = _bandTable[b];
+
+                if(freq > startFreq && freq <= endFreq){
                     this->_freqBands[b] += this->_vReal[i];
-                    break;
                 }
+
             }            
         }
     }
-}
-
-
-//in FFT, based on the sampling frequency and the number of samples, there will be a fixed number of frequency components (aka bins resolution)
-//for 1024 audio samples at a sampling frequency of 44100 Hz, there will be 513 samples from 0 Hz to 220500 Hz (formula: no.of bins = (no.of samples/2) + 1)
-//this function returns the frequency for a given bin index.
-unsigned short Analyzer::getCurrentFreqBin(unsigned short binIndex){
-    if (binIndex <= 1){
-        return 0;
-    }
-    
-    unsigned short offset = binIndex - 2;
-    return offset * (this->_samplingFrequency / 2) / (this->_sampleSize / 2);
 }

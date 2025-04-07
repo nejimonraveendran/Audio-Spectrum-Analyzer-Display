@@ -126,6 +126,7 @@ void LedMatrix::setLEDColPeak(unsigned short col, unsigned short value){
           this->_colPeaks[col].row = topRowIndex;
         }
 
+        this->_colPeaks[col].curMillis = this->_colPeaks[col].prevMillis = millis(); //reset the time interval for the peak falling.
         this->_colPeaks[col].curWait = this->_maxPeakFallingWait; //reset peak falling interval to max value.
     }
 
@@ -139,23 +140,21 @@ void LedMatrix::setLEDColPeak(unsigned short col, unsigned short value){
     }
     
     //logic for the peaks to fall down
-    for (unsigned short x=0; x<this->_noOfCols; x++){
-      this->_colPeaks[x].curMillis = millis();
-
-      if (this->_colPeaks[x].curMillis - this->_colPeaks[x].prevMillis >= this->_colPeaks[x].curWait){
-        if(this->_colPeaks[x].row > 0){
-          this->_colPeaks[x].row = this->_colPeaks[x].row - 1; //deduct one row (creates fall down effect)
-        }
-
-        this->_colPeaks[x].prevMillis = this->_colPeaks[x].curMillis;
-      }
-
-      this->_colPeaks[x].curWait = this->_colPeaks[x].curWait - this->_peakFallingIntervalIncrement;
-
-      if(this->_colPeaks[x].curWait < this->_peakFallingIntervalIncrement || this->_colPeaks[x].curWait > this->_maxPeakFallingWait){
-        this->_colPeaks[x].curWait = this->_peakFallingIntervalIncrement;
+    this->_colPeaks[col].curMillis = millis(); //update current time
+    
+    if (this->_colPeaks[col].curMillis - this->_colPeaks[col].prevMillis >= this->_colPeaks[col].curWait){
+      if(this->_colPeaks[col].row > 0){
+        this->_colPeaks[col].row -= 1; //deduct one row (creates fall down effect)
+        this->_colPeaks[col].prevMillis = this->_colPeaks[col].curMillis;
       }
     }
+
+    this->_colPeaks[col].curWait -= this->_peakFallingIntervalIncrement;
+
+    if(this->_colPeaks[col].curWait < this->_peakFallingIntervalIncrement){
+      this->_colPeaks[col].curWait = this->_peakFallingIntervalIncrement;
+    }
+
   }
   
 

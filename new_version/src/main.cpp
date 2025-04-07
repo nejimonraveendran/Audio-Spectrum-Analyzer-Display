@@ -7,6 +7,7 @@
 #define NUM_LEVELS 10  //change this to the number of levels you want to display on the LED matrix
 unsigned short _bandTable[] = { //frequency bands in Hz
   100, 250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000 
+  // 100, 200, 400, 600, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 14000, 16000
 };
 
 

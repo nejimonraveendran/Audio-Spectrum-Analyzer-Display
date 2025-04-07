@@ -23,7 +23,6 @@ class Analyzer{
         int16_t* _samples; //array to hold the audio samples from I2S ADC
         unsigned short* _bandTable; //array to hold band frequencies in Hz
         arduinoFFT* _fft; //Arduino FFT library object
-        unsigned short getCurrentFreqBin(unsigned short binIndex); //returns the frequency for a given bin index.
         void putIntoFrequencyBands(); //puts the FFT results into frequency bands
 
     public:
