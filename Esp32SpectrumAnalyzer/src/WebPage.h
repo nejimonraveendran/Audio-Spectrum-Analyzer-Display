@@ -108,7 +108,7 @@ char g_webPage[] PROGMEM = R"=====(
     <h1>Spectrum Analyzer Display</h1>
 
     <hr>
-    
+    <div id="colorPickerContainer"></div>
     <div class="container hidden" id="container">
         <label>Peak wait (millisecs)</label>
         <div>
@@ -166,7 +166,7 @@ char g_webPage[] PROGMEM = R"=====(
     </div>
           
     <script>
-        const _baseUrl = window.location.origin;  
+        const _baseUrl = 'http://10.0.0.64'; //window.location.origin;  
         const _localStorageConfigKey = 'state';
         var _noOfRows = 0;  
         var _noOfCols = 0;  
@@ -180,6 +180,7 @@ char g_webPage[] PROGMEM = R"=====(
                 }                
             });
         });
+
 
         function buildUI(data){
             _noOfCols = data.noOfCols;
@@ -290,60 +291,54 @@ char g_webPage[] PROGMEM = R"=====(
 
 
         function gradientChanged(ctl){
-            let colors = [];
             let topColor =  $('#gradientTop').val();
             let bottomColor = $('#gradientBottom').val();
 
-            let rgbTop = JSON.parse(RGBstringToJson(topColor));
-            let rgbBottom = JSON.parse(RGBstringToJson(bottomColor));            
-
-            let valClampRGB = [
-                rgbTop.r - rgbBottom.r,
-                rgbTop.g - rgbBottom.g,
-                rgbTop.b - rgbBottom.b
-            ];
-
-            let stepsPerc = 100 / (_noOfRows+1);
-
-            for (var i = 0; i < _noOfRows; i++) {
-                let clampedR = (valClampRGB[0] > 0) 
-                ? pad((Math.round(valClampRGB[0] / 100 * (stepsPerc * (i + 1)))).toString(16), 2) 
-                : pad((Math.round((rgbBottom.r + (valClampRGB[0]) / 100 * (stepsPerc * (i + 1))))).toString(16), 2);
-                
-                let clampedG = (valClampRGB[1] > 0) 
-                ? pad((Math.round(valClampRGB[1] / 100 * (stepsPerc * (i + 1)))).toString(16), 2) 
-                : pad((Math.round((rgbBottom.g + (valClampRGB[1]) / 100 * (stepsPerc * (i + 1))))).toString(16), 2);
-                
-                let clampedB = (valClampRGB[2] > 0) 
-                ? pad((Math.round(valClampRGB[2] / 100 * (stepsPerc * (i + 1)))).toString(16), 2) 
-                : pad((Math.round((rgbBottom.b + (valClampRGB[2]) / 100 * (stepsPerc * (i + 1))))).toString(16), 2);
-  
-                colors[i] = [
-                    '#',
-                    clampedR,
-                    clampedG,
-                    clampedB
-                ].join('');
-            }
-
-            colors.reverse(); 
+            let gradient = generateGradient(topColor, bottomColor, _noOfRows); //generate gradient colors
 
             for (let x = 0; x < _noOfCols; x++) {
                 let colPixels = $(`#tblMatrix tbody tr td div input[data-x=${x}].pixel`); 
 
                 for (let y = 0; y < _noOfRows; y++) {
                     let pixel = $(`#tblMatrix tbody tr td div input[data-x=${x}][data-y=${y}].pixel`); 
-                    $(pixel).val(colors[y]);
+                    $(pixel).val(gradient[y]);
                 }
             }
-            
         }
 
-        function pad(n, width, z) {
-            z = z || '0';
-            n = n + '';
-            return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-        }   
+
+        function generateGradient(startColor, endColor, steps) {
+            const startRgb = hexToRgb(startColor);
+            const endRgb = hexToRgb(endColor);
+
+            const gradient = [];
+
+            for (let i = 0; i < steps; i++) {
+                const t = i / (steps - 1); // Interpolation factor
+                const r = Math.round(startRgb.r + t * (endRgb.r - startRgb.r));
+                const g = Math.round(startRgb.g + t * (endRgb.g - startRgb.g));
+                const b = Math.round(startRgb.b + t * (endRgb.b - startRgb.b));
+                gradient.push(rgbToHex(r, g, b));
+            }
+
+            return gradient;
+        }
+
+        function hexToRgb(hex) {
+            // Convert HEX to RGB
+            const bigint = parseInt(hex.slice(1), 16);
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255
+            };
+        }
+
+        function rgbToHex(r, g, b) {
+            // Convert RGB to HEX
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+        }
+        
 
         function post(path, json, cb){
             $.ajax({

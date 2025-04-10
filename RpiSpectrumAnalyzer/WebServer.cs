@@ -1,0 +1,138 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Routing;
+using System.Text;
+using System.Text.Json;
+using System.Net.WebSockets;
+using Microsoft.Extensions.FileProviders;
+
+namespace RpiSpectrumAnalyzer;
+
+//to use Host class, add the folowing to the csproj file:
+ //<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+
+class WebServer
+{
+    string _url;
+    string _contentRoot;
+
+    WebSocket? _webSocket;
+
+    public WebServer(string url)
+    {
+        _url = url;
+        _contentRoot = Directory.GetCurrentDirectory();
+    }
+
+    public void Start()
+    {
+        Task.Factory.StartNew(() => 
+        {
+            var host = Host.CreateDefaultBuilder()
+            .ConfigureWebHostDefaults(webBuilder => 
+            {
+                webBuilder.UseUrls(_url);
+                
+                webBuilder.Configure(app => 
+                {
+                    app.UseDefaultFiles();
+                    app.UseStaticFiles(new StaticFileOptions 
+                    {
+                        DefaultContentType = "text/html",
+                        FileProvider  = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
+                    });
+
+                    //websocket with 1 min keepalive ping-pong
+                    app.UseWebSockets(new WebSocketOptions{ KeepAliveInterval = TimeSpan.FromMinutes(1)});
+
+                    app.UseRouter(routes => 
+                    {
+                        routes.MapGet("/api/config", async context => 
+                        {
+                            await HandleGetConfig(context);
+                        });
+
+                        routes.MapPost("/api/config", async context => 
+                        {
+                            await HandleUpdateConfig(context);
+                        });
+
+                        routes.MapRoute("/ws", async context => 
+                        {
+                            await HandleWebSocketConnection(context);
+                        });
+
+                    });
+
+                    //terminal middleware for unhandled routes
+                    app.Run(async context => 
+                    {
+                        await HandleNotFound(context);
+                    });
+
+                });
+
+                //clear the output logging to console so that our spectrum analyzer bar display does not get spoiled by ASP.NET's log messages 
+                webBuilder.SuppressStatusMessages(true);
+                webBuilder.ConfigureLogging((context, logging) => 
+                {
+                    logging.ClearProviders();
+                });
+
+            }).Build();
+
+            host.Run();
+            
+        }, TaskCreationOptions.LongRunning);
+
+    }
+
+    public WebSocket? SocketConnection {get => _webSocket; }
+
+    public event EventHandler<WebSocket?> OnSocketClientConnected;
+
+    async Task HandleNotFound(HttpContext context){
+        context.Response.StatusCode = context.Response.StatusCode = StatusCodes.Status404NotFound;;
+        await context.Response.WriteAsync("<html>Nothing at that location!</html>");
+    }
+
+    async Task HandleWebSocketConnection(HttpContext context){
+        if(context.WebSockets.IsWebSocketRequest)
+        {
+            _webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            this.OnSocketClientConnected?.Invoke(this, _webSocket); //fire connected event
+
+            await new TaskCompletionSource<object>().Task; //required to keep the middleware pipeline up and running.  Otherwise, WS will immediately disconnect.
+            
+        }else
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        }
+    }
+
+
+    async Task HandleGetConfig(HttpContext context)
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("\"get\":0");
+    }
+
+    async Task HandleUpdateConfig(HttpContext context)
+    {
+        // using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
+        // string json = await reader.ReadToEndAsync();
+        
+        var json = await JsonDocument.ParseAsync(context.Request.Body);
+        json.Deserialize<ConfigDto>();
+        var config = JsonSerializer.Deserialize<ConfigDto>(json);
+
+        string res = JsonSerializer.Serialize<ConfigDto>(config);
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(res);
+    }
+
+}
