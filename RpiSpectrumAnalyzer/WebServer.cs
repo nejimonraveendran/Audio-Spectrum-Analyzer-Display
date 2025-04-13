@@ -19,13 +19,14 @@ class WebServer
     string _url;
     string _contentRoot;
 
-    List<WebSocket?> _webSockets;
+    // List<WebSocket?> _webSockets;
+    List<SocketClient> _socketClients;
 
     public WebServer(string url)
     {
         _url = url;
         _contentRoot = Directory.GetCurrentDirectory();
-        _webSockets = new List<WebSocket?>();
+        _socketClients = new List<SocketClient>();
     }
 
     public void Start()
@@ -91,7 +92,7 @@ class WebServer
 
     }
 
-    public IList<WebSocket?> SocketConnections  => _webSockets;
+    public IList<SocketClient> SocketClients  => _socketClients;
 
     public event EventHandler<WebSocket?> OnSocketClientConnected;
 
@@ -103,19 +104,24 @@ class WebServer
     private async Task HandleWebSocketConnection(HttpContext context){
         if(context.WebSockets.IsWebSocketRequest)
         {
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
-            if(!_webSockets.Contains(webSocket)){
-                _webSockets.Add(webSocket);
+            var clientId = context.Request.Query["clientId"];
+            if(string.IsNullOrEmpty(clientId))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return;
             }
 
-            //Remove unused web sockets
-            RemoveUnusedWebSockets();
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
+            //check if we already have a socket with the same id
+            _socketClients.RemoveAll(ws => ws.Id == clientId); //remove old socket with same id
+            _socketClients.RemoveAll(ws => ws.Socket == null || ws.Socket.State != WebSocketState.Open); //remove closed sockets
+            _socketClients.Add(new SocketClient{ Id = clientId, Socket = webSocket });
+            
             this.OnSocketClientConnected?.Invoke(this, webSocket); //fire connected event
 
             await new TaskCompletionSource<object>().Task; //required to keep the middleware pipeline up and running.  Otherwise, WS will immediately disconnect.
-            
+
         }else
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -140,11 +146,6 @@ class WebServer
 
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsync(res);
-    }
-
-    private void RemoveUnusedWebSockets()
-    {
-        _webSockets.RemoveAll(ws => ws == null || ws.State != WebSocketState.Open);
     }
 
 }

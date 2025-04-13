@@ -40,18 +40,18 @@ class WebDisplay : IDisplay
 
 
     private void SendToClient(string content){
-        if(_webServer == null || _webServer.SocketConnections.Count == 0)
+        if(_webServer == null || _webServer.SocketClients.Count == 0)
             return;
 
         
         var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(content));
 
-        foreach (var ws in _webServer.SocketConnections)
+        foreach (var client in _webServer.SocketClients)
         {
-            if(ws == null || ws.State != WebSocketState.Open)
+            if(client == null || client.Socket == null || client.Socket.State != WebSocketState.Open)
                 continue;
 
-            ws.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            client.Socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
         
     }

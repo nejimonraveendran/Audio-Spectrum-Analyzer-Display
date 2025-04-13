@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Net.WebSockets;
 
 namespace RpiSpectrumAnalyzer;
 
@@ -53,6 +54,13 @@ class AnalyzerParams
 class ConfigDto
 {
     public int Brightness { get; set; }
+}
+
+
+class SocketClient
+{
+    public string Id { get; set; }
+    public WebSocket? Socket { get; set; }
 }
 
 //extension helpers

@@ -60,7 +60,7 @@ class Program
                                 .Amplify(_amplificationFactor)
                                 .Normalize();
             
-            consoleDisplay.DisplayLevels(bands.ToLevels(_consoleDisplayLevels));
+            // consoleDisplay.DisplayLevels(bands.ToLevels(_consoleDisplayLevels));
             ledDisplay.DisplayLevels(bands.ToLevels(_ledDisplayLevels));
             webDisplay.DisplayLevels(bands.ToLevels(_webDisplayLevels));
 

@@ -52,3 +52,5 @@ let showMessage = (msg, color) => {
     $('#msg').html(msg);
     $('#msg').css('color', color);    
 };
+
+
