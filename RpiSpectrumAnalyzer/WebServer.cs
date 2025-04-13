@@ -19,12 +19,13 @@ class WebServer
     string _url;
     string _contentRoot;
 
-    WebSocket? _webSocket;
+    List<WebSocket?> _webSockets;
 
     public WebServer(string url)
     {
         _url = url;
         _contentRoot = Directory.GetCurrentDirectory();
+        _webSockets = new List<WebSocket?>();
     }
 
     public void Start()
@@ -90,7 +91,7 @@ class WebServer
 
     }
 
-    public WebSocket? SocketConnection {get => _webSocket; }
+    public IList<WebSocket?> SocketConnections  => _webSockets;
 
     public event EventHandler<WebSocket?> OnSocketClientConnected;
 
@@ -99,11 +100,19 @@ class WebServer
         await context.Response.WriteAsync("<html>Nothing at that location!</html>");
     }
 
-    async Task HandleWebSocketConnection(HttpContext context){
+    private async Task HandleWebSocketConnection(HttpContext context){
         if(context.WebSockets.IsWebSocketRequest)
         {
-            _webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            this.OnSocketClientConnected?.Invoke(this, _webSocket); //fire connected event
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+
+            if(!_webSockets.Contains(webSocket)){
+                _webSockets.Add(webSocket);
+            }
+
+            //Remove unused web sockets
+            RemoveUnusedWebSockets();
+
+            this.OnSocketClientConnected?.Invoke(this, webSocket); //fire connected event
 
             await new TaskCompletionSource<object>().Task; //required to keep the middleware pipeline up and running.  Otherwise, WS will immediately disconnect.
             
@@ -114,16 +123,14 @@ class WebServer
     }
 
 
-    async Task HandleGetConfig(HttpContext context)
+    private async Task HandleGetConfig(HttpContext context)
     {
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsync("\"get\":0");
     }
 
-    async Task HandleUpdateConfig(HttpContext context)
+    private async Task HandleUpdateConfig(HttpContext context)
     {
-        // using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
-        // string json = await reader.ReadToEndAsync();
         
         var json = await JsonDocument.ParseAsync(context.Request.Body);
         json.Deserialize<ConfigDto>();
@@ -133,6 +140,11 @@ class WebServer
 
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsync(res);
+    }
+
+    private void RemoveUnusedWebSockets()
+    {
+        _webSockets.RemoveAll(ws => ws == null || ws.State != WebSocketState.Open);
     }
 
 }

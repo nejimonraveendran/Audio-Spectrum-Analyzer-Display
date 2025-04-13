@@ -16,7 +16,7 @@ class WebDisplay : IDisplay
 
         _webServer.OnSocketClientConnected += (e, ws) => 
         {
-            var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = "startup", Data = new {Rows = _rows, Cols = _cols}});
+            var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.STARTUP, Data = new {Rows = _rows, Cols = _cols}});
             SendToClient(payload);
         };
 
@@ -27,25 +27,33 @@ class WebDisplay : IDisplay
 
     public void Clear()
     {
-        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = "command", Data = new {Command = "clear"}});
+        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.COMMAND, Data = new {Command = "clear"}});
         SendToClient(payload);
     }
 
     public void DisplayLevels(LevelInfo[] targetLevels)
     {
         //Update web displays via web socket
-        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = "display", Data = targetLevels });
+        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.DISPLAY, Data = targetLevels });
         SendToClient(payload);
     }
 
 
     private void SendToClient(string content){
-        if(_webServer == null || _webServer.SocketConnection == null || _webServer.SocketConnection.State != WebSocketState.Open)
+        if(_webServer == null || _webServer.SocketConnections.Count == 0)
             return;
 
+        
         var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(content));
-        _webServer.SocketConnection.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
 
+        foreach (var ws in _webServer.SocketConnections)
+        {
+            if(ws == null || ws.State != WebSocketState.Open)
+                continue;
+
+            ws.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+        
     }
 
 }

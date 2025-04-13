@@ -29,6 +29,12 @@ struct ColPeak
     public long PrevMilSecs { get; set; }    
 }
 
+static class WebDisplayEvent
+{
+    public static string STARTUP => "startup";
+    public static string COMMAND => "command";
+    public static string DISPLAY => "display";
+}
 
 class CaptureParams
 {
