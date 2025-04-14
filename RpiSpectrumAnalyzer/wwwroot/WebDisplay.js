@@ -164,7 +164,6 @@ class WebDisplay{
                 border-right: ${10}px; 
                 border-style: solid;
                 border-color: rgb(10, 10, 10);
-                background-color: ${this._pixelColors[x, y]};
                 background-color: rgb(5, 5, 5);
                 "></td>`;
             }
