@@ -38,16 +38,18 @@
         <hr>  
     </div>
 
+    <script src="Helpers.js"></script>
     <script>
         let _webDisplayConfig;
         $(document).ready(() => {
-            _webDisplayConfig = new WebDisplayConfig('.content');
+            _webDisplayConfig = new DisplayConfig('.content', new Helpers());
         });
 
 
 
-        class WebDisplayConfig  {
-            constructor(parentElement) {
+        class DisplayConfig  {
+            constructor(parentElement, helpers) {
+                this._helpers = helpers;
                 this._parentElement = parentElement;
                 this._winWid = window.innerWidth;
                 this._winHgt = window.innerHeight;
@@ -57,18 +59,17 @@
                 this._cols = 16;
                 this._rows = 16;
                 this._pixelColors = [,];
-                this._peakColor = '#ffffff';
+                this._peakColor = this._helpers.rgbToHexString(255, 255, 255); 
                 this._blackPixel = 'black';
                 this._transitionSpeed = 2;
                 this._peakWait = 500;
                 this._peakWaitCountDown = 20;
                 this._showPeaks = true;
                 this._pixelWid = this._winWid / (this._cols * 2);
-                this._pixelHgt =  this._pixelWid;       
+                this._pixelHgt =  this._pixelWid;
+                this._html = '';    
+                this._gradient = [];   
 
-
-
-                this.setupDefaultColors();
                 this.buildConfigUi();
             }
 
@@ -81,87 +82,103 @@
             }
 
             buildConfigUi(){
-                let html = '';
-                html = `<div id="configContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px;">`;
-                html = this.buildSliders(html);
-                html = this.buildToggles(html);
-                html = this.builPeakColor(html);
-                html = this.buildMatrix(html);
-                html = this.buildDeployButton(html);
-                html += `</div>`;
+                this._html = `<div id="configContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px;">`;
+                this._html = this.buildSliders();
+                this._html = this.buildToggles();
+                this._html = this.builPeakColor();
+                this._html = this.buildMatrix();
+                this._html = this.buildDeployButton();
+                this._html += `</div>`;
 
-                $(this._parentElement).html(html);
+                $(this._parentElement).html(this._html);
 
+                $(`#${this._gradientTopId}`).on('change', this.setGradient.bind(this));
+                $(`#${this._gradientBottomId}`).on('change', this.setGradient.bind(this));
+                                
             }
 
-            buildSliders(html){
-                html += `<div id="slidersContainer" style="width: 100%; display: flex; flex-direction: column; align-items: start; padding: 10px;">`;
-                html += `<label>Peak wait</label>`;
-                html += `<input id="sldPeakWait" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+            setGradient() {
+                let topColor = $(`#${this._gradientTopId}`).val();
+                let bottomColor = $(`#${this._gradientBottomId}`).val();
+                this._gradient = this._helpers.generateGradient(bottomColor, topColor, this._rows);
                 
-                html += `<label>Peak speed</label>`;
-                html += `<input id="sldPeakFalldown" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+                for (let x = 0; x < this._cols; x++) {
+                    for (let y = 0; y < this._rows; y++) {
+                        let pixel = $(`#${this._tblMatrixId} tbody tr td div input[data-px-x=${x}][data-px-y=${y}].pixel`); 
+                        $(pixel).val(this._gradient[y]);
+                    }
+                }
+            }
+
+            buildSliders(){
+                this._html += `<div id="slidersContainer" style="width: 100%; display: flex; flex-direction: column; align-items: start; padding: 10px;">`;
+                this._html += `<label>Peak wait</label>`;
+                this._html += `<input id="sldPeakWait" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
                 
-                html += `<label>Level smoothness</label>`;
-                html += `<input id="sldTransitionSpeed" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+                this._html += `<label>Peak speed</label>`;
+                this._html += `<input id="sldPeakFalldown" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
                 
-                html += `<label>Level strength</label>`;
-                html += `<input id="sldAmplification" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+                this._html += `<label>Level smoothness</label>`;
+                this._html += `<input id="sldTransitionSpeed" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+                
+                this._html += `<label>Level strength</label>`;
+                this._html += `<input id="sldAmplification" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
 
-                html += `<label>Brightness</label>`;
-                html += `<input id="sldBrightness" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
+                this._html += `<label>Brightness</label>`;
+                this._html += `<input id="sldBrightness" type="range" min="1" max="100" step="1" value="25" style="width:100%;margin-bottom:20px;"/>`;
 
-                html += `</div>`;
-                return html;
+                this._html += `</div>`;
+                return this._html;
             }
 
-            buildToggles(html){
-                html += `<div id="togglesContainer" style="width: 100%; display: flex; flex-direction: row; align-items: start; padding-left: 20px;">`;
-                html += `<input id="chkShowPeak" type="checkbox" checked="1"/>`;
-                html += `<label>Show peaks</label>`;
+            buildToggles(){
+                this._html += `<div id="togglesContainer" style="width: 100%; display: flex; flex-direction: row; align-items: start; padding-left: 20px;">`;
+                this._html += `<input id="chkShowPeak" type="checkbox" checked="1"/>`;
+                this._html += `<label>Show peaks</label>`;
 
-                html += `<input id="chkShowPeaksWhenSilent" type="checkbox" checked style="margin-left: 50px;"/>`;
-                html += `<label>Show bttom peaks when silent</label>`;
+                this._html += `<input id="chkShowPeaksWhenSilent" type="checkbox" checked style="margin-left: 50px;"/>`;
+                this._html += `<label>Show bttom peaks when silent</label>`;
 
-                html += `</div>`;
-                return html;
+                this._html += `</div>`;
+                return this._html;
             }
 
 
-            builPeakColor(html) {
-                html += `<div id="peakColorContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding:10px;">`;
-                html += `<label>Peak Color</label>`;
-                html += `<div style="width:${this._pixelWid}px;height:${this._pixelHgt}px;overflow:hidden;border-radius:20%;">`;
-                html += `<input type="color" id="peakColor" value="${this._peakColor}" style="cursor:pointer;width:${this._pixelWid * 3}px; height:${this._pixelHgt * 3}px; transform:translate(-50%, -50%);"/>`;
-                html += `</div>`;
-                html += `</div>`;
-                return html;
+            builPeakColor() {
+                this._html += `<div id="peakColorContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding:10px;">`;
+                this._html += `<label>Peak Color</label>`;
+                this._html += `<div style="width:${this._pixelWid}px;height:${this._pixelHgt}px;overflow:hidden;border-radius:20%;">`;
+                this._html += `<input type="color" id="peakColor" value="${this._peakColor}" style="cursor:pointer;width:${this._pixelWid * 3}px; height:${this._pixelHgt * 3}px; transform:translate(-50%, -50%);"/>`;
+                this._html += `</div>`;
+                this._html += `</div>`;
+                return this._html;
             }
 
-            buildMatrix(html) {
+            buildMatrix() {
                 let gradientPickerHeight = (this._pixelHgt * this._rows) / 2;
                 
-                html += `<table id="${this._tblMatrixId}">`;
-                
-                for (let y = this._rows-1; y >= 0; y--) {  
-                    let hue = this.map(y, 0, this._rows, 100, 0);
-                    let color =  `hsl(${hue}, 100%, 50%)`;  
+                this._html += `<table id="${this._tblMatrixId}">`;
+                this._html += `<tbody>`;
 
-                    html += '<tr>';
-                    if (y == this._rows-1) {
-                        html += `<td rowspan="${this._rows}">`;
-                        html += `<p><i class="fa-solid fa-fill-drip"></i></p>`;
-                        html += `<div><input id="${this._gradientTopId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
-                        html += `<div><input id="${this._gradientBottomId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
-                        html += `</td>`;
+                for (let y = this._rows-1; y >= 0; y--) {  
+                    this._html += '<tr>';
+                    
+                    //build gradient color pickers
+                    if (y == this._rows-1) { 
+                        this._html += `<td rowspan="${this._rows}">`;
+                        this._html += `<p><i class="fa-solid fa-fill-drip"></i></p>`;
+                        this._html += `<div><input id="${this._gradientTopId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
+                        this._html += `<div><input id="${this._gradientBottomId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
+                        this._html += `</td>`;
                     }
 
-                    for (let x = 0; x < this._cols; x++) {
-                        this._pixelColors[x, y] = color;
 
-                        html += `<td>
+                    //build pixels
+                    for (let x = 0; x < this._cols; x++) {
+                        this._html += `<td>
                         <div style="width:${this._pixelWid}px;height:${this._pixelHgt}px;overflow:hidden;cursor:pointer;border-radius:20%;">
-                        <input type="color" value="#ffffff" data-px-x="${x}" data-px-y="${y}"  
+                        <input type="color" value="${this._helpers.rgbToHexString(255, 255, 255)}" data-px-x="${x}" data-px-y="${y}"
+                        class="pixel"  
                         style=" 
                         width:${this._pixelWid*3}px;
                         height:${this._pixelWid*3}px;
@@ -173,38 +190,21 @@
 
                     }
 
-                    html += '</tr>';
+                    this._html += '</tr>';
                 }
 
-                html += '</table>';
+                this._html += `</tbody>`;
+                this._html += '</table>';
 
-                return html;
+                return this._html;
             }
 
-            buildDeployButton(html){
-                html += `<div id="deployButtonContainer" style="width: 100%; display: flex; flex-direction: row; justify-content: center; margin-top: 20px;">`;
-                html += `<button class="btnDeploy" style="width:200px;height:100px;background-color:rgb(139, 187, 250);cursor:pointer;font-weight: bolder;">Deploy</button>`;
-                html += `</div>`;
-                return html;
+            buildDeployButton(){
+                this._html += `<div id="deployButtonContainer" style="width: 100%; display: flex; flex-direction: row; justify-content: center; margin-top: 20px;">`;
+                this._html += `<button class="btnDeploy" style="width:200px;height:100px;background-color:rgb(139, 187, 250);cursor:pointer;font-weight: bolder;">Deploy</button>`;
+                this._html += `</div>`;
+                return this._html;
             }
-
-
-            setupDefaultColors() {
-                for (let x = 0; x < this._cols; x++)
-                {
-                    for (let y = 0; y < this._rows; y++)
-                    {
-                        let hueIndex = this.map(y, 0, this._rows-1, 100, 0); //map row numbers to the color range green to red
-                        this._pixelColors[x, y] =  `hsl(${hueIndex}, 100%, 50%)`;
-                    }            
-                }
-            }
-
-                 
-            map(value, fromMin, fromMax, toMin, toMax){
-                return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
-            }
-
 
         }
     </script>

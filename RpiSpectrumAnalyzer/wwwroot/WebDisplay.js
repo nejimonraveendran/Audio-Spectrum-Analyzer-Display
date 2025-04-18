@@ -1,5 +1,6 @@
 class WebDisplay{
-    constructor(rows, cols, parentElement){
+    constructor(rows, cols, parentElement, helpers){
+        this._helpers = helpers;
         this._parentElement = parentElement;
         this._winWid = window.innerWidth;
         this._winHgt = window.innerHeight;
@@ -150,7 +151,7 @@ class WebDisplay{
         let matrixHtml = `<table id="${this._tblMatrixId}">`;
 
         for (let y = this._rows-1; y >= 0; y--) {  
-            let hue = this.map(y, 0, this._rows, 100, 0);
+            let hue = this._helpers.map(y, 0, this._rows, 100, 0);
             let color =  `hsl(${hue}, 100%, 50%)`;  
             matrixHtml += '<tr>';
             for (let x = 0; x < this._cols; x++) {
@@ -189,14 +190,9 @@ class WebDisplay{
         {
             for (let y = 0; y < this._rows; y++)
             {
-                let hueIndex = this.map(y, 0, this._rows-1, 100, 0); //map row numbers to the color range green to red
+                let hueIndex = this._helpers.map(y, 0, this._rows-1, 100, 0); //map row numbers to the color range green to red
                 this._pixelColors[x, y] =  `hsl(${hueIndex}, 100%, 50%)`;
             }            
         }
     }
-
-    map(value, fromMin, fromMax, toMin, toMax){
-        return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
-     }
-
 }

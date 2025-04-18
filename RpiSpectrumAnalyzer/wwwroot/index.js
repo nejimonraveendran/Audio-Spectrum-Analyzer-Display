@@ -42,7 +42,7 @@ let onSocketDisConnect = () =>{
 
 let onSocketMessage = (data) => {
     if(data.Event == _events.STARTUP){
-        _webDisplay = new WebDisplay(data.Data.Rows, data.Data.Cols, '.content');
+        _webDisplay = new WebDisplay(data.Data.Rows, data.Data.Cols, '.content', new Helpers());
     }else if (data.Event == _events.DISPLAY){
         _webDisplay.displayLevels(data.Data);
     }
