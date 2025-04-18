@@ -1,8 +1,8 @@
+namespace RpiSpectrumAnalyzer;
+
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-
-namespace RpiSpectrumAnalyzer;
 
 class WebDisplay : IDisplay
 {
@@ -24,6 +24,7 @@ class WebDisplay : IDisplay
 
     public bool HidePeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
+    public bool IsBrightnessSupported => false;
 
     public void Clear()
     {

@@ -88,6 +88,7 @@ class LedDisplay : IDisplay
 
     public bool HidePeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
+    public bool IsBrightnessSupported => true;
 
     private void SetupDefaultColors()
     {

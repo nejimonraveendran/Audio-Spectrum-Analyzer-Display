@@ -53,6 +53,7 @@ class AnalyzerParams
 
 class ConfigDto
 {
+    public IDisplay? TargetDisplay { get; set; }
     public int Brightness { get; set; }
 }
 

@@ -104,6 +104,7 @@ class ConsoleDisplay : IDisplay
 
     public bool HidePeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
+    public bool IsBrightnessSupported => false;
 
     private void DisplayLabels(int x, int y, int value){
         Console.ForegroundColor = ConsoleColor.White;

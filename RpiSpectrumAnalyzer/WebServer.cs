@@ -21,6 +21,9 @@ class WebServer
 
     // List<WebSocket?> _webSockets;
     List<SocketClient> _socketClients;
+    public IList<SocketClient> SocketClients  => _socketClients;
+    public event EventHandler<WebSocket?> OnSocketClientConnected;
+    public event EventHandler<ConfigDto> ConfigChanged;
 
     public WebServer(string url)
     {
@@ -92,10 +95,7 @@ class WebServer
 
     }
 
-    public IList<SocketClient> SocketClients  => _socketClients;
-
-    public event EventHandler<WebSocket?> OnSocketClientConnected;
-
+    
     async Task HandleNotFound(HttpContext context){
         context.Response.StatusCode = context.Response.StatusCode = StatusCodes.Status404NotFound;;
         await context.Response.WriteAsync("<html>Nothing at that location!</html>");
@@ -137,10 +137,12 @@ class WebServer
 
     private async Task HandleUpdateConfig(HttpContext context)
     {
-        
         var json = await JsonDocument.ParseAsync(context.Request.Body);
         json.Deserialize<ConfigDto>();
         var config = JsonSerializer.Deserialize<ConfigDto>(json);
+
+        this.ConfigChanged?.Invoke(this, config); //fire config changed event
+
 
         string res = JsonSerializer.Serialize<ConfigDto>(config);
 
