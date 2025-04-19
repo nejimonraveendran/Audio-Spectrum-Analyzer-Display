@@ -6,7 +6,7 @@ class Analyzer
 {
     
     const double _16bitMaxVal = 32768.0f; //decimal represenation of the max value 16 bit can hold.  Need this later in the code to normalize the raw buffer values.
-    private readonly AnalyzerParams _analyzerParams;
+    private AnalyzerParams _analyzerParams;
     private double[] _freqBandsOld;
 
     public Analyzer(AnalyzerParams analyzerParams)

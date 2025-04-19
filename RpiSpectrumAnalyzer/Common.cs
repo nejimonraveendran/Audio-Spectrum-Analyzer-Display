@@ -37,30 +37,45 @@ static class WebDisplayEvent
     public static string DISPLAY => "display";
 }
 
-class CaptureParams
-{
-    public uint SampleRate {get; set;}
-    public ushort BitsPerSample {get; set;}
-    public ushort Channels {get; set;}
-}
+// class CaptureParams
+// {
+//     public uint SampleRate {get; set;}
+//     public ushort BitsPerSample {get; set;}
+
+// }
 
 class AnalyzerParams
 {
-    public int[] Bands { get; set; }
+    public int[]? Bands { get; set; }
     public uint SampleRate {get; set;}
 }
 
+enum DisplayType
+{
+    LED = 1,
+    CONSOLE = 2,
+    WEB = 3
+}
 
 class ConfigDto
 {
-    public IDisplay? TargetDisplay { get; set; }
+    public DisplayType DisplayType { get; set; }
     public int Brightness { get; set; }
+    public Color[,]? PixelColors { get; set; }
+    public Color PeakColor { get; set; }
+    public double TransitionSpeed { get; set; }
+    public int PeakWait { get; set; }
+    public int PeakWaitCountDown { get; set; }
+    public int AmplificationFactor { get; set; }
+    public bool ShowPeaks { get; set; }
+    public bool ShowPeaksWhenSilent { get; set; }
+    
 }
 
 
 class SocketClient
 {
-    public string Id { get; set; }
+    public string? Id { get; set; }
     public WebSocket? Socket { get; set; }
 }
 

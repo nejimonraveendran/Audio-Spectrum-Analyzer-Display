@@ -2,16 +2,10 @@ using System.Drawing;
 
 namespace RpiSpectrumAnalyzer;
 
-class ConsoleDisplay : IDisplay
+class ConsoleDisplay : DisplayBase
 {
-    int _rows, _cols;
-    double _transitionSpeed = 1;
-    int _peakWait;
-    int _peakWaitCountDown;
-    ConsoleColor _peakColor;
-    double[] _curLevels;
-    ConsoleColor[,] _pixelColors;
-    ConsoleColor[] _consoleHues = 
+
+    private ConsoleColor[] _consoleHues = 
     {
         ConsoleColor.DarkRed,  
         ConsoleColor.Red, 
@@ -27,25 +21,45 @@ class ConsoleDisplay : IDisplay
         ConsoleColor.DarkMagenta
     };
 
-    ColPeak[] _colPeaks;
-
-
-    public ConsoleDisplay(int rows, int cols)
+    private ConsoleColor _peakColor;
+    private ConsoleColor[,] _pixelColors;
+    private ColPeak[] _colPeaks;
+    private double[] _curLevels;
+    
+    public ConsoleDisplay(int rows, int cols, LedServer ledServer)
     {
         _rows = rows;
         _cols = cols;
+        _ledServer = ledServer;
         _curLevels = new double[_cols];
         _pixelColors = new ConsoleColor[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
-        _peakWait = 2000; //config
-        _peakWaitCountDown = 20; //config
-        _peakColor = ConsoleColor.DarkRed; //config
+        
+        _peakWait = 2000; //default, configurable via API call
+        _peakWaitCountDown = 20; //default, configurable via API call
+        _peakColor = ConsoleColor.DarkRed; //default, configurable via API call
+        _transitionSpeed = 1; //default, configurable via API call
+
+        _ledServer.OnConfigChanged += (e, config) => 
+        {
+            if(config?.DisplayType != DisplayType.CONSOLE)
+                return;
+          
+            _peakWait = config.PeakWait;
+            _peakWaitCountDown = config.PeakWaitCountDown;
+            _transitionSpeed = config.TransitionSpeed;
+            _amplificationFactor = config.AmplificationFactor;
+            _showPeaks = config.ShowPeaks;
+            _showPeaksWhenSilent = config.ShowPeaksWhenSilent;
+            
+        };
 
         Clear();
         SetupDefaultColors();
+
     }
 
-    public void Clear()
+    public override void Clear()
     {
         Console.BackgroundColor = ConsoleColor.Black;
         Console.ForegroundColor = ConsoleColor.Black;
@@ -53,7 +67,17 @@ class ConsoleDisplay : IDisplay
         
     }
 
-    public void DisplayLevels(LevelInfo[] targetLevels)
+    
+    public override void DisplayAsLevels(BandInfo[] bands)
+    {
+        var levels = bands.Amplify(_amplificationFactor)
+                        .Normalize()
+                        .ToLevels(_rows);
+
+        DisplayLevels(levels);
+    }
+
+    private void DisplayLevels(LevelInfo[] targetLevels)
     {
         string levelChars = "===";
 
@@ -80,11 +104,11 @@ class ConsoleDisplay : IDisplay
                     Console.ForegroundColor = ConsoleColor.Black;
                 }         
 
-                if(!HidePeaks){
+                if(_showPeaks){
                     var peakRow = GetPeakRow(x, (int)_curLevels[x]);
 
                     var targetPeakRow = 1;
-                    if(ShowPeaksWhenSilent){
+                    if(_showPeaksWhenSilent){
                         targetPeakRow = 0;
                     }
 
@@ -101,10 +125,6 @@ class ConsoleDisplay : IDisplay
         }
     }
 
-
-    public bool HidePeaks { get; set; }
-    public bool ShowPeaksWhenSilent { get; set; }
-    public bool IsBrightnessSupported => false;
 
     private void DisplayLabels(int x, int y, int value){
         Console.ForegroundColor = ConsoleColor.White;
@@ -149,14 +169,12 @@ class ConsoleDisplay : IDisplay
         
         }
         
-        
         if(_colPeaks[col].Row > 0){
             peakRow = _colPeaks[col].Row;
         }else{
             peakRow = 0;
         }
         
-
         _colPeaks[col].CurMilSecs = Environment.TickCount64;
 
         if (_colPeaks[col].CurMilSecs - _colPeaks[col].PrevMilSecs >= _colPeaks[col].CurWait)
@@ -179,62 +197,8 @@ class ConsoleDisplay : IDisplay
             
         }
 
-
         return peakRow;
 
     }
 
-
-    //  private int GetPeakRow(int col, int value)
-    // {
-    //     int peakRow = 0;
-    //     int topRowIndex = _rows - 1;
-
-    //     if(value > _colPeaks[col].Row)  //set new peaks if current value is greater than previously stored peak.
-    //     {
-    //         _colPeaks[col].Row = value; //set peak at one above the actual value.
-    //         if(_colPeaks[col].Row > topRowIndex)  //dont let it overflow the top row index
-    //         { 
-    //             _colPeaks[col].Row = topRowIndex;
-    //         }
-
-    //         _colPeaks[col].CurWait = _maxPeakFallingWaitMilliSecs; //reset peak falling interval to max value.
-            
-    //     }
-
-    //     if(_colPeaks[col].Row > 0){
-    //         peakRow = _colPeaks[col].Row;
-    //     }else{
-    //         peakRow = 0;
-    //     }
-        
-        
-
-    //     //logic for the peaks to fall down
-    //     for (int x=0;x<_cols; x++){
-            
-    //         _colPeaks[x].CurMilSecs = Environment.TickCount64;
-
-    //         if (_colPeaks[x].CurMilSecs - _colPeaks[x].PrevMilSecs >= _colPeaks[x].CurWait)
-    //         {
-    //             if(_colPeaks[x].Row > 0)
-    //             {
-    //                 _colPeaks[x].Row = _colPeaks[x].Row - 1; //deduct one row (creates fall down effect)
-    //             }
-
-    //             _colPeaks[x].PrevMilSecs = _colPeaks[x].CurMilSecs;
-    //         }
-
-    //         _colPeaks[x].CurWait = _colPeaks[x].CurWait - _peakFallingIntervalMilliSecs;
-
-    //         if(_colPeaks[x].CurWait < _peakFallingIntervalMilliSecs || _colPeaks[x].CurWait > _maxPeakFallingWaitMilliSecs)
-    //         {
-    //             _colPeaks[x].CurWait = _peakFallingIntervalMilliSecs;
-    //         }
-    //     }
-
-    //     return peakRow;
-
-    // }
-    
 }

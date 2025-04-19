@@ -10,14 +10,14 @@ static class AudioCapture
     /// <param name="captureParams">Specifies basic capture parameters</param>
     /// <param name="cts">Cancellation token to be passed so that the action can be cancelled</param>
     /// <param name="callback">Callback function to receive the captured sample (byte array buffer)</param>
-    public static void StartCapture(Action<byte[]> callback, CaptureParams captureParams, CancellationTokenSource cts){
+    public static void StartCapture(Action<byte[]> callback, uint sampleRate, CancellationTokenSource cts){
         Task.Factory.StartNew(() => {
 
             var settings = new SoundDeviceSettings
             {
-                RecordingSampleRate = captureParams.SampleRate,
-                RecordingBitsPerSample = captureParams.BitsPerSample,
-                RecordingChannels = captureParams.Channels,
+                RecordingSampleRate = sampleRate,
+                RecordingBitsPerSample = 16, //16 bits per sample
+                RecordingChannels = 1 //just need one channel for our use case
             };
             
             using (var alsaDevice = AlsaDeviceBuilder.Create(settings))

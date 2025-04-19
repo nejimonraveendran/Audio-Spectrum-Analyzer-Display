@@ -21,60 +21,45 @@ namespace RpiSpectrumAnalyzer;
 
 class Program
 {
-    static int[] _bands = {100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000}; //audio frequencies (Hz) to analyze
-    const int _consoleDisplayLevels = 16; //number of levels
-    const int _ledDisplayLevels = 10; //number of levels
-    const int _webDisplayLevels = 30; //number of levels
+    private static string _ledServerUrl = "http://0.0.0.0:8080";
+    private static int[] _bands = {100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000}; //audio frequencies (Hz) to analyze
+    private static int _consoleDisplayLevels = 16; //number of levels
+    private static int _ledDisplayLevels = 10; //number of levels
+    private static int _webDisplayLevels = 30; //number of levels
     
-    
-    const int _amplificationFactor = 5000; //variable to amplify the display levels   
-
-    //other configuration (not recommended to change) 
-    const int _sampleRate = 44100; //sampling frequency in Hz
-    const int _bitsPerSample = 16; //bits per each sample (2 bytes)
-    const int _channels = 1; //we just need 1 channel recording for our use case
-    const string _webServerUrl = "http://0.0.0.0:8080";
     
     static void Main(string[] args)
     {
-        var webServer = new WebServer(_webServerUrl);
-        var captureParams = new CaptureParams{ BitsPerSample = _bitsPerSample, SampleRate = _sampleRate, Channels = _channels };
-        var analyzer = new Analyzer(new AnalyzerParams{ Bands = _bands, SampleRate = _sampleRate });
-        IDisplay ledDisplay = new LedDisplay(_ledDisplayLevels, _bands.Length);
-        IDisplay consoleDisplay = new ConsoleDisplay(_consoleDisplayLevels, _bands.Length);
-        IDisplay webDisplay = new WebDisplay(_webDisplayLevels, _bands.Length, webServer);
+        const int sampleRate = 44100; //sampling frequency in Hz
 
-        ledDisplay.HidePeaks = false;
-        consoleDisplay.HidePeaks = false;
-        webDisplay.HidePeaks = false;
+        var ledServer = new LedServer(_ledServerUrl);
+        var analyzer = new Analyzer(new AnalyzerParams{ Bands = _bands, SampleRate = sampleRate });
 
-        ledDisplay.ShowPeaksWhenSilent = true;
-        consoleDisplay.ShowPeaksWhenSilent = true;
-        webDisplay.ShowPeaksWhenSilent = true;
+        var displays = new List<DisplayBase>
+        {
+            new ConsoleDisplay(_consoleDisplayLevels, _bands.Length, ledServer),
+            new LedDisplay(_ledDisplayLevels, _bands.Length, ledServer),
+            new WebDisplay(_webDisplayLevels, _bands.Length, ledServer)
+        };
 
 
         var cts = new CancellationTokenSource();
+
         //start capturing system audio (executed on a different threat)
-        AudioCapture.StartCapture((buffer) =>{
-            var bands = analyzer.ConvertToFrequencyBands(buffer)
-                                .Amplify(_amplificationFactor)
-                                .Normalize();
-            
-            // consoleDisplay.DisplayLevels(bands.ToLevels(_consoleDisplayLevels));
-            ledDisplay.DisplayLevels(bands.ToLevels(_ledDisplayLevels));
-            webDisplay.DisplayLevels(bands.ToLevels(_webDisplayLevels));
+        AudioCapture.StartCapture((buffer) =>{            
+            var bands = analyzer.ConvertToFrequencyBands(buffer);
+            displays.ForEach(display => display.DisplayAsLevels(bands));
 
-        }, captureParams, cts);
+        }, sampleRate, cts);
 
 
-        webServer.Start();
+        ledServer.Start();
 
         //press any key to terminate:
         Console.Read();
         cts.Cancel();
         Thread.Sleep(100);
-        ledDisplay.Clear();
-        consoleDisplay.Clear();
+        displays.ForEach(display => display.Clear());
            
     }
 

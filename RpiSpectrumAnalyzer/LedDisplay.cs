@@ -4,33 +4,30 @@ using Iot.Device.Ws28xx;
 
 namespace RpiSpectrumAnalyzer;
 
-class LedDisplay : IDisplay
-{
+class LedDisplay : DisplayBase
+{   
     Ws2812b _ledMatrix;
-    int _rows, _cols;
-    double _transitionSpeed;
-    int _peakWait;
     double[] _curLevels;
-    Color[,] _pixelColors;
+    Color[,]? _pixelColors;
     ColPeak[] _colPeaks;
     Color _peakColor;
-    int _peakWaitCountDown;
     int _brightness;
-
-    public LedDisplay(int rows, int cols)
+    
+    public LedDisplay(int rows, int cols, LedServer ledServer)
     {
         _rows = rows;
         _cols = cols;
+        _ledServer = ledServer;
         _curLevels = new double[_rows];
         _pixelColors = new Color[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
-        _transitionSpeed = 1.5; //config
-        _peakWait = 500; //config
-        _peakWaitCountDown = 100; //config
-        _brightness = 5;
-        _peakColor =  Helpers.HsvToColor(0, 1, _brightness);  // Color.FromArgb(1, 5, 5, 5); //config
+
+        _transitionSpeed = 1.5; //default, configurable via API call
+        _peakWait = 500; //default, configurable via API call
+        _peakWaitCountDown = 100; //default, configurable via API call
+        _brightness = 5; //default, configurable via API call
+        _peakColor =  Helpers.HsvToColor(0, 1, _brightness);  //default, configurable via API call
         
-    
         var spiSettings =  new SpiConnectionSettings(0, 0)
         {
             ClockFrequency = 2_400_000,
@@ -40,19 +37,48 @@ class LedDisplay : IDisplay
 
         using SpiDevice spi = SpiDevice.Create(spiSettings);
         _ledMatrix = new Ws2812b(spi, _cols, _rows);
-        
+
+        _ledServer.OnConfigChanged += (e, config) => 
+        {
+            if(config?.DisplayType != DisplayType.LED)
+                return;
+          
+            _peakWait = config.PeakWait;
+            _peakWaitCountDown = config.PeakWaitCountDown;
+            _transitionSpeed = config.TransitionSpeed;
+            _peakColor = config.PeakColor;
+            _pixelColors = config.PixelColors;
+            _brightness = config.Brightness;
+            _amplificationFactor = config.AmplificationFactor;
+            _showPeaks = config.ShowPeaks;
+            _showPeaksWhenSilent = config.ShowPeaksWhenSilent;
+  
+        };
+
 
         SetupDefaultColors();
         Clear();
+
     }
 
-    public void Clear()
+    public override void Clear()
     {
         _ledMatrix.Image.Clear();
         _ledMatrix.Update();
     }
 
-    public void DisplayLevels(LevelInfo[] targetLevels)
+    public override void DisplayAsLevels(BandInfo[] bands)
+    {
+        var levels = bands.Amplify(_amplificationFactor)
+                        .Normalize()
+                        .ToLevels(_rows);
+
+        DisplayLevels(levels);
+
+    }
+
+
+    private void DisplayLevels(LevelInfo[] targetLevels)
     {
         for (int x = 0; x < _cols; x++)
         {
@@ -75,7 +101,7 @@ class LedDisplay : IDisplay
                 }         
             }
 
-            if(!HidePeaks)
+            if(_showPeaks)
             {
                 SetColumnPeaks(x, (int)_curLevels[x]);
             }
@@ -84,11 +110,6 @@ class LedDisplay : IDisplay
         }
                 
     }
-
-
-    public bool HidePeaks { get; set; }
-    public bool ShowPeaksWhenSilent { get; set; }
-    public bool IsBrightnessSupported => true;
 
     private void SetupDefaultColors()
     {
@@ -101,7 +122,6 @@ class LedDisplay : IDisplay
             }            
         }
     }
-
 
     private void SetColumnPeaks(int col, int value)
     {
@@ -123,7 +143,7 @@ class LedDisplay : IDisplay
 
         //set LEDs
         var targetPeakRow = 1;
-        if(ShowPeaksWhenSilent){
+        if(_showPeaksWhenSilent){
             targetPeakRow = 0;
         }
 
