@@ -6,20 +6,19 @@ namespace RpiSpectrumAnalyzer;
 
 class LedDisplay : DisplayBase
 {   
-    Ws2812b _ledMatrix;
-    double[] _curLevels;
-    Color[,]? _pixelColors;
-    ColPeak[] _colPeaks;
-    Color _peakColor;
-    int _brightness;
+    private Ws2812b _ledMatrix;
+    private double[] _curLevels;
+    private Color[][]? _pixelColors; //private Color[,]? _pixelColors;
+    private ColPeak[] _colPeaks;
+    private Color _peakColor;
+    private int _brightness;
     
-    public LedDisplay(int rows, int cols, LedServer ledServer)
+    public LedDisplay(int rows, int cols)
     {
         _rows = rows;
         _cols = cols;
-        _ledServer = ledServer;
         _curLevels = new double[_rows];
-        _pixelColors = new Color[_cols, _rows];
+        _pixelColors = new Color[_cols][]; //_pixelColors = new Color[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
 
         _transitionSpeed = 1.5; //default, configurable via API call
@@ -38,27 +37,52 @@ class LedDisplay : DisplayBase
         using SpiDevice spi = SpiDevice.Create(spiSettings);
         _ledMatrix = new Ws2812b(spi, _cols, _rows);
 
-        _ledServer.OnConfigChanged += (e, config) => 
-        {
-            if(config?.DisplayType != DisplayType.LED)
-                return;
-          
-            _peakWait = config.PeakWait;
-            _peakWaitCountDown = config.PeakWaitCountDown;
-            _transitionSpeed = config.TransitionSpeed;
-            _peakColor = config.PeakColor;
-            _pixelColors = config.PixelColors;
-            _brightness = config.Brightness;
-            _amplificationFactor = config.AmplificationFactor;
-            _showPeaks = config.ShowPeaks;
-            _showPeaksWhenSilent = config.ShowPeaksWhenSilent;
-  
-        };
-
-
         SetupDefaultColors();
         Clear();
 
+    }
+
+    public override int Rows => _rows;
+    public override int Cols => _cols;
+    public override bool IsBrightnessSupported => true;
+
+    public override DisplayConfiguration GetConfiguration()
+    {
+        return new LedDisplayConfiguration
+        {
+            DisplayType = DisplayType.LED,
+            PeakWait = _peakWait,
+            PeakWaitCountDown = _peakWaitCountDown,
+            TransitionSpeed = _transitionSpeed,
+            AmplificationFactor = _amplificationFactor,
+            ShowPeaks = _showPeaks,
+            ShowPeaksWhenSilent = _showPeaksWhenSilent,
+            IsBrightnessSupported = IsBrightnessSupported,
+            Brightness = _brightness,
+            PeakColor = _peakColor,
+            PixelColors = _pixelColors,
+            
+        };
+    }
+
+    public override void UpdateConfiguration(DisplayConfiguration? config)
+    {
+        if(config?.DisplayType != DisplayType.LED)
+            return;
+
+        var ledDisplayConfig = config as LedDisplayConfiguration;
+        if (ledDisplayConfig == null) return;
+
+        _peakWait = ledDisplayConfig.PeakWait > 0 ? ledDisplayConfig.PeakWait : _peakWait;
+        _peakWaitCountDown = ledDisplayConfig.PeakWaitCountDown > 0 ? ledDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
+        _transitionSpeed = ledDisplayConfig.TransitionSpeed > 0 ? ledDisplayConfig.TransitionSpeed : _transitionSpeed;
+        _brightness = ledDisplayConfig.Brightness > 0 ? ledDisplayConfig.Brightness : _brightness;
+        _amplificationFactor = ledDisplayConfig.AmplificationFactor > 0 ? ledDisplayConfig.AmplificationFactor : _amplificationFactor;
+        _showPeaks = ledDisplayConfig.ShowPeaks;
+        _showPeaksWhenSilent = ledDisplayConfig.ShowPeaksWhenSilent;
+        _peakColor = ledDisplayConfig.PeakColor != Color.Empty ? ledDisplayConfig.PeakColor : _peakColor;
+        _pixelColors = ledDisplayConfig.PixelColors != null ? ledDisplayConfig.PixelColors : _pixelColors;
+        
     }
 
     public override void Clear()
@@ -95,7 +119,7 @@ class LedDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                     _ledMatrix.Image.SetPixel(y, x, _pixelColors[x, y]); //x, y reversed because of the LED strip wiring in my case
+                     _ledMatrix.Image.SetPixel(y, x, _pixelColors[x][y]); //_ledMatrix.Image.SetPixel(y, x, _pixelColors[x,y]); //x, y reversed because of the LED strip wiring in my case
                 }else{
                     _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(0, 0, 0));
                 }         
@@ -115,10 +139,12 @@ class LedDisplay : DisplayBase
     {
         for (int x = 0; x < _cols; x++)
         {
+            _pixelColors[x] = new Color[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
             for (int y = 0; y < _rows; y++)
             {
                 double hue = Helpers.Map(y, 0, _rows, 120, 1); //map row numbers to the hue range green (120) to red (1)
-                _pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
+                _pixelColors[x][y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
+                //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
             }            
         }
     }

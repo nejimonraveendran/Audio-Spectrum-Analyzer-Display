@@ -9,9 +9,12 @@ abstract class DisplayBase
     protected bool _showPeaks = true; //default, configurable via API call
     protected bool _showPeaksWhenSilent = true; //default, configurable via API call
     protected int _amplificationFactor = 5000; //default, configurable via API call
-    protected LedServer? _ledServer;
+    public abstract int Rows { get; }
+    public abstract int Cols { get; }
     public abstract void Clear();
+    public abstract DisplayConfiguration? GetConfiguration();
+    public abstract void UpdateConfiguration(DisplayConfiguration? config);
     public abstract void DisplayAsLevels(BandInfo[] bands);
-    public virtual bool IsBrightnessSupported() => false;
+    public virtual bool IsBrightnessSupported => false;
 
 }

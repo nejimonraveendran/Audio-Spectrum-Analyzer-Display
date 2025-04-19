@@ -1,4 +1,4 @@
-let _socketServer = "ws://mypi5.local:8080/ws";
+let _socketServer = "ws://10.0.0.16:8090/ws";
 let _webDisplay;
 let _socketClient;
 const  _events = {
@@ -44,6 +44,7 @@ let onSocketMessage = (data) => {
     if(data.Event == _events.STARTUP){
         _webDisplay = new WebDisplay(data.Data.Rows, data.Data.Cols, '.content', new Helpers());
     }else if (data.Event == _events.DISPLAY){
+        // console.log(data.Data);
         _webDisplay.displayLevels(data.Data);
     }
 };

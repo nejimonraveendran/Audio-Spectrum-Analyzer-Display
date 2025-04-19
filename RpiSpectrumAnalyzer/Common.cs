@@ -57,21 +57,40 @@ enum DisplayType
     WEB = 3
 }
 
-class ConfigDto
+class DisplayConfiguration
 {
     public DisplayType DisplayType { get; set; }
     public int Brightness { get; set; }
-    public Color[,]? PixelColors { get; set; }
-    public Color PeakColor { get; set; }
     public double TransitionSpeed { get; set; }
     public int PeakWait { get; set; }
     public int PeakWaitCountDown { get; set; }
     public int AmplificationFactor { get; set; }
     public bool ShowPeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
+    public bool IsBrightnessSupported { get; set; }
     
 }
 
+class ConsoleDisplayConfiguration : DisplayConfiguration
+{
+    public ConsoleColor PeakColor { get; set; }
+    public ConsoleColor[][]? PixelColors { get; set; } // public ConsoleColor[,]? PixelColors { get; set; }
+    
+}
+
+class LedDisplayConfiguration : DisplayConfiguration
+{
+    public Color PeakColor { get; set; }
+    public Color[][]? PixelColors { get; set; } //public Color[,]? PixelColors { get; set; }
+    
+}
+
+
+class WebDisplayConfiguration : DisplayConfiguration
+{
+    public Color PeakColor { get; set; }
+    public Color[][]? PixelColors { get; set; } //public Color[,]? PixelColors { get; set; }
+}
 
 class SocketClient
 {

@@ -22,17 +22,16 @@ class ConsoleDisplay : DisplayBase
     };
 
     private ConsoleColor _peakColor;
-    private ConsoleColor[,] _pixelColors;
+    private ConsoleColor[][]? _pixelColors; //private ConsoleColor[,]? _pixelColors;
     private ColPeak[] _colPeaks;
     private double[] _curLevels;
     
-    public ConsoleDisplay(int rows, int cols, LedServer ledServer)
+    public ConsoleDisplay(int rows, int cols)
     {
         _rows = rows;
         _cols = cols;
-        _ledServer = ledServer;
         _curLevels = new double[_cols];
-        _pixelColors = new ConsoleColor[_cols, _rows];
+        _pixelColors = new ConsoleColor[_cols][]; //new ConsoleColor[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
         
         _peakWait = 2000; //default, configurable via API call
@@ -40,24 +39,51 @@ class ConsoleDisplay : DisplayBase
         _peakColor = ConsoleColor.DarkRed; //default, configurable via API call
         _transitionSpeed = 1; //default, configurable via API call
 
-        _ledServer.OnConfigChanged += (e, config) => 
-        {
-            if(config?.DisplayType != DisplayType.CONSOLE)
-                return;
-          
-            _peakWait = config.PeakWait;
-            _peakWaitCountDown = config.PeakWaitCountDown;
-            _transitionSpeed = config.TransitionSpeed;
-            _amplificationFactor = config.AmplificationFactor;
-            _showPeaks = config.ShowPeaks;
-            _showPeaksWhenSilent = config.ShowPeaksWhenSilent;
-            
-        };
-
         Clear();
         SetupDefaultColors();
 
     }
+
+    public override int Rows => _rows;
+    public override int Cols => _cols;
+
+    public override DisplayConfiguration GetConfiguration()
+    {
+        return new ConsoleDisplayConfiguration
+        {
+            DisplayType = DisplayType.LED,
+            PeakWait = _peakWait,
+            PeakWaitCountDown = _peakWaitCountDown,
+            TransitionSpeed = _transitionSpeed,
+            AmplificationFactor = _amplificationFactor,
+            ShowPeaks = _showPeaks,
+            ShowPeaksWhenSilent = _showPeaksWhenSilent,
+            IsBrightnessSupported = IsBrightnessSupported,
+            PeakColor = _peakColor,
+            PixelColors = _pixelColors,
+            //Brightness = _brightness, //not supported
+            
+        };
+    }
+
+    public override void UpdateConfiguration(DisplayConfiguration? config)
+    {
+        if(config?.DisplayType != DisplayType.CONSOLE)
+            return;
+        
+        var consoleDisplayConfig = config as ConsoleDisplayConfiguration;
+        if (consoleDisplayConfig == null)
+            return;
+
+        _peakWait = consoleDisplayConfig.PeakWait > 0 ? consoleDisplayConfig.PeakWait : _peakWait;
+        _peakWaitCountDown = consoleDisplayConfig.PeakWaitCountDown > 0 ? consoleDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
+        _transitionSpeed = consoleDisplayConfig.TransitionSpeed > 0 ? consoleDisplayConfig.TransitionSpeed : _transitionSpeed;
+        _amplificationFactor = consoleDisplayConfig.AmplificationFactor > 0 ? consoleDisplayConfig.AmplificationFactor : _amplificationFactor;
+        _showPeaks = consoleDisplayConfig.ShowPeaks;
+        _showPeaksWhenSilent = consoleDisplayConfig.ShowPeaksWhenSilent;
+
+    }
+
 
     public override void Clear()
     {
@@ -99,7 +125,7 @@ class ConsoleDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    Console.ForegroundColor = _pixelColors[x, y];
+                    Console.ForegroundColor = _pixelColors[x][y]; //_pixelColors[x, y];
                 }else{
                     Console.ForegroundColor = ConsoleColor.Black;
                 }         
@@ -143,10 +169,11 @@ class ConsoleDisplay : DisplayBase
     {
         for (int x = 0; x < _cols; x++)
         {
+            _pixelColors[x] = new ConsoleColor[_rows]; //_pixelColors[x, y] = new ConsoleColor[_rows];
             for (int y = 0; y < _rows; y++)
             {
                 int hueIndex = Helpers.Map(y, 0, _rows-1, 5, 0); //map row numbers to the color range green to red
-                _pixelColors[x, y] =  _consoleHues[hueIndex];
+                _pixelColors[x][y] =  _consoleHues[hueIndex]; //_pixelColors[x, y] =  _consoleHues[hueIndex];
             }            
         }
     }
