@@ -11,7 +11,10 @@ class LedDisplay : DisplayBase
     private Color[][]? _pixelColors; //private Color[,]? _pixelColors;
     private ColPeak[] _colPeaks;
     private Color _peakColor;
+
+    private int _brightnessMin;
     private int _brightness;
+    private int _brightnessMax;
     
     public LedDisplay(int rows, int cols)
     {
@@ -21,10 +24,22 @@ class LedDisplay : DisplayBase
         _pixelColors = new Color[_cols][]; //_pixelColors = new Color[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
 
+        _transitionSpeedMin = 1;
         _transitionSpeed = 1.5; //default, configurable via API call
+        _transitionSpeedMax = _rows/2;
+
+        _peakWaitMin = 1;
         _peakWait = 500; //default, configurable via API call
+        _peakWaitMax = 5000;
+
+        _peakWaitCountDownMin = 1;
         _peakWaitCountDown = 100; //default, configurable via API call
+        _peakWaitCountDownMax = 1000;
+
+        _brightnessMin = 1;
         _brightness = 5; //default, configurable via API call
+        _brightnessMax = 100;
+
         _peakColor =  Helpers.HsvToColor(0, 1, _brightness);  //default, configurable via API call
         
         var spiSettings =  new SpiConnectionSettings(0, 0)
@@ -51,16 +66,29 @@ class LedDisplay : DisplayBase
         return new LedDisplayConfiguration
         {
             DisplayType = DisplayType.LED,
+            Rows = _rows,
+            Cols = _cols,
+            BrightnessMin = _brightnessMin,
+            Brightness = _brightness,
+            BrightnessMax = _brightnessMax,
+            PeakWaitMin = _peakWaitMin,
             PeakWait = _peakWait,
+            PeakWaitMax = _peakWaitMax,
+            PeakWaitCountDownMin = _peakWaitCountDownMin,
             PeakWaitCountDown = _peakWaitCountDown,
+            PeakWaitCountDownMax = _peakWaitCountDownMax,
+            TransitionSpeedMin = _transitionSpeedMin,
             TransitionSpeed = _transitionSpeed,
+            TransitionSpeedMax = _transitionSpeedMax,
+            AmplificationFactorMin = _amplificationFactorMin,
             AmplificationFactor = _amplificationFactor,
+            AmplificationFactorMax = _amplificationFactorMax,
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
-            Brightness = _brightness,
             PeakColor = _peakColor,
             PixelColors = _pixelColors,
+
             
         };
     }

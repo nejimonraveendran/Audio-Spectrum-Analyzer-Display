@@ -25,7 +25,7 @@ class Program
     private static int[] _bands = {100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000}; //audio frequencies (Hz) to analyze
     private static int _consoleDisplayLevels = 16; //number of levels
     private static int _ledDisplayLevels = 10; //number of levels
-    private static int _webDisplayLevels = 30; //number of levels
+    private static int _webDisplayLevels = 15; //number of levels
     
     
     static void Main(string[] args)

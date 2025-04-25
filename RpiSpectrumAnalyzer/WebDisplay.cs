@@ -15,10 +15,19 @@ class WebDisplay : DisplayBase
         _rows = rows;
         _cols = cols;
         _pixelColors = new Color[_cols][]; //_pixelColors = new Color[_cols, _rows];
-        _peakColor =  Helpers.HsvToColor(0, 1, 1);  //default, configurable via API call
+        _peakColor = Color.FromArgb(255, 0, 0);//  Helpers.HsvToColor(0, 1, 1);  //default, configurable via API call
+
+        _transitionSpeedMin = 1;
         _transitionSpeed = 2; //default, configurable via API call
+        _transitionSpeedMax = _rows/2;
+
+        _peakWaitMin = 1;
         _peakWait = 500; //default, configurable via API call
+        _peakWaitMax = 5000;
+
+        _peakWaitCountDownMin = 1;
         _peakWaitCountDown = 20; //default, configurable via API call
+        _peakWaitCountDownMax = 1000;
 
         SocketClients = [];
 
@@ -35,16 +44,26 @@ class WebDisplay : DisplayBase
         return new WebDisplayConfiguration
         {
             DisplayType = DisplayType.WEB,
+            Rows = _rows,
+            Cols = _cols,
+
+            PeakWaitMin = _peakWaitMin,
             PeakWait = _peakWait,
+            PeakWaitMax = _peakWaitMax,
+            PeakWaitCountDownMin = _peakWaitCountDownMin,
             PeakWaitCountDown = _peakWaitCountDown,
+            PeakWaitCountDownMax = _peakWaitCountDownMax,
+            TransitionSpeedMin = _transitionSpeedMin,
             TransitionSpeed = _transitionSpeed,
+            TransitionSpeedMax = _transitionSpeedMax,
+            AmplificationFactorMin = _amplificationFactorMin,
             AmplificationFactor = _amplificationFactor,
+            AmplificationFactorMax = _amplificationFactorMax,
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
             PeakColor = _peakColor,
             PixelColors = _pixelColors,
-            // Brightness = _brightness, //not supported
         };
 
     }
@@ -108,19 +127,33 @@ class WebDisplay : DisplayBase
         
     }
 
+    // private void SetupDefaultColors()
+    // {
+    //     for (int x = 0; x < _cols; x++)
+    //     {
+    //         _pixelColors[x] = new Color[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+    //         for (int y = 0; y < _rows; y++)
+    //         {
+    //             double hue = Helpers.Map(y, 0, _rows, 120, 1); //map row numbers to the hue range green (120) to red (1)
+    //             _pixelColors[x][y] = Helpers.HsvToColor(hue, 1, 1); //1 = full saturation, 
+    //             //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
+    //         }            
+    //     }
+    // }
+
     private void SetupDefaultColors()
     {
+        var gradient = Helpers.GenerateGradient(Color.FromArgb(90, 180, 0), Color.FromArgb(255, 100, 0), _rows); //green to orange gradient
+        
         for (int x = 0; x < _cols; x++)
         {
             _pixelColors[x] = new Color[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
             for (int y = 0; y < _rows; y++)
             {
-                double hue = Helpers.Map(y, 0, _rows, 120, 1); //map row numbers to the hue range green (120) to red (1)
-                _pixelColors[x][y] = Helpers.HsvToColor(hue, 1, 1); //1 = full saturation, 
+                _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
                 //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
             }            
         }
     }
-
 
 }

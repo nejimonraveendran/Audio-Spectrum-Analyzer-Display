@@ -37,6 +37,7 @@ class LedServer
             var host = Host.CreateDefaultBuilder()
             .ConfigureWebHostDefaults(webBuilder => 
             {
+
                 webBuilder.UseUrls(_url);
                 
                 webBuilder.Configure(app => 
@@ -51,6 +52,7 @@ class LedServer
                     //websocket with 1 min keepalive ping-pong
                     app.UseWebSockets(new WebSocketOptions{ KeepAliveInterval = TimeSpan.FromMinutes(1)});
 
+                  
                     app.UseRouter(routes => 
                     {
                         routes.MapGet("/api/config", async context => 
@@ -69,6 +71,7 @@ class LedServer
                         });
 
                     });
+
 
                     //terminal middleware for unhandled routes
                     app.Run(async context => 

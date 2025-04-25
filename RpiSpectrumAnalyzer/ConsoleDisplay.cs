@@ -34,11 +34,20 @@ class ConsoleDisplay : DisplayBase
         _pixelColors = new ConsoleColor[_cols][]; //new ConsoleColor[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
         
+        _peakWaitMin = 1;
         _peakWait = 2000; //default, configurable via API call
-        _peakWaitCountDown = 20; //default, configurable via API call
-        _peakColor = ConsoleColor.DarkRed; //default, configurable via API call
-        _transitionSpeed = 1; //default, configurable via API call
+        _peakWaitMax = 5000;
 
+        _peakWaitCountDownMin = 1;
+        _peakWaitCountDown = 20; //default, configurable via API call
+        _peakWaitCountDownMax = 1000;
+
+        _transitionSpeedMin = 1;
+        _transitionSpeed = 1; //default, configurable via API call
+        _transitionSpeedMax = _rows/2;
+
+        _peakColor = ConsoleColor.DarkRed; //default, configurable via API call
+        
         Clear();
         SetupDefaultColors();
 
@@ -52,16 +61,25 @@ class ConsoleDisplay : DisplayBase
         return new ConsoleDisplayConfiguration
         {
             DisplayType = DisplayType.LED,
+            Rows = _rows,
+            Cols = _cols,
+            PeakWaitMin = _peakWaitMin,
             PeakWait = _peakWait,
+            PeakWaitMax = _peakWaitMax,
+            PeakWaitCountDownMin = _peakWaitCountDownMin,
             PeakWaitCountDown = _peakWaitCountDown,
+            PeakWaitCountDownMax = _peakWaitCountDownMax,
+            TransitionSpeedMin = _transitionSpeedMin,
             TransitionSpeed = _transitionSpeed,
+            TransitionSpeedMax = _transitionSpeedMax,
+            AmplificationFactorMin = _amplificationFactorMin,
             AmplificationFactor = _amplificationFactor,
+            AmplificationFactorMax = _amplificationFactorMax,
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
             PeakColor = _peakColor,
             PixelColors = _pixelColors,
-            //Brightness = _brightness, //not supported
             
         };
     }

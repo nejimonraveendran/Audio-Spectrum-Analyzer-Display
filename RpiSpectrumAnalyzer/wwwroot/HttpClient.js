@@ -1,10 +1,6 @@
 class HttpClient {
-    constructor(baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
     async get(url) {
-        const response = await fetch(this.baseUrl + url);
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -12,7 +8,7 @@ class HttpClient {
     }
 
     async post(url, data) {
-        const response = await fetch(this.baseUrl + url, {
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

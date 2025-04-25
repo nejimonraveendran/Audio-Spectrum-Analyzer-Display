@@ -60,14 +60,27 @@ enum DisplayType
 class DisplayConfiguration
 {
     public DisplayType DisplayType { get; set; }
+    public int Rows { get; set; }
+    public int Cols { get; set; }
+    public int BrightnessMin { get; set; }
     public int Brightness { get; set; }
+    public int BrightnessMax { get; set; }
+    public double TransitionSpeedMin { get; set; }
     public double TransitionSpeed { get; set; }
+    public double TransitionSpeedMax { get; set; }
+    public int PeakWaitMin { get; set; }
     public int PeakWait { get; set; }
+    public int PeakWaitMax { get; set; }
+    public int PeakWaitCountDownMin { get; set; }
     public int PeakWaitCountDown { get; set; }
+    public int PeakWaitCountDownMax { get; set; }
+    public int AmplificationFactorMin { get; set; }
     public int AmplificationFactor { get; set; }
+    public int AmplificationFactorMax { get; set; }
     public bool ShowPeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
     public bool IsBrightnessSupported { get; set; }
+
     
 }
 
@@ -125,6 +138,8 @@ static class Extensions
 
 static class Helpers
 {
+
+
     public static Color HsvToColor(double hue, double saturation, double value)
     {
         int hi = (int)(hue / 60) % 6;
@@ -146,6 +161,22 @@ static class Helpers
         };
 
         return Color.FromArgb((int)r, (int)g, (int)b);
+    }
+
+
+    public static Color[] GenerateGradient(Color startColor, Color endColor, int gradientCount)
+    {
+        Color[] gradient = new Color[gradientCount];
+        for (int i = 0; i < gradientCount; i++)
+        {
+            double ratio = (double)i / (gradientCount - 1);
+            int r = (int)(startColor.R + (endColor.R - startColor.R) * ratio);
+            int g = (int)(startColor.G + (endColor.G - startColor.G) * ratio);
+            int b = (int)(startColor.B + (endColor.B - startColor.B) * ratio);
+            gradient[i] = Color.FromArgb(r, g, b);
+        }
+
+        return gradient;
     }
 
 
