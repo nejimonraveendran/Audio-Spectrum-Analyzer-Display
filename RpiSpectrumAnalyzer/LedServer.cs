@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Net.WebSockets;
 using Microsoft.Extensions.FileProviders;
 using System.Text.Json.Serialization;
+using System.Linq;
 
 namespace RpiSpectrumAnalyzer;
 
@@ -154,7 +155,8 @@ class LedServer
             case DisplayType.LED:
                 if (DisplayClients.FirstOrDefault(d => d is LedDisplay) is LedDisplay ledDisplay) 
                 {
-                    var ledDisplayConfig = ledDisplay.GetConfiguration() as LedDisplayConfiguration;
+                    // var ledDisplayConfig = ledDisplay.GetConfiguration() as LedDisplayConfiguration;
+                    var ledDisplayConfig = ledDisplay.GetConfiguration();
                     var json = JsonSerializer.Serialize(ledDisplayConfig);
                     context.Response.StatusCode = StatusCodes.Status200OK;
                     context.Response.ContentType = "application/json";
@@ -164,7 +166,8 @@ class LedServer
             case DisplayType.CONSOLE:
                 if (DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) is ConsoleDisplay consoleDisplay) 
                 {
-                    var consoleDisplayConfig = consoleDisplay.GetConfiguration() as ConsoleDisplayConfiguration;
+                    // var consoleDisplayConfig = consoleDisplay.GetConfiguration() as ConsoleDisplayConfiguration;
+                    var consoleDisplayConfig = consoleDisplay.GetConfiguration();
                     var json = JsonSerializer.Serialize(consoleDisplayConfig);
                     context.Response.StatusCode = StatusCodes.Status200OK;
                     context.Response.ContentType = "application/json";
@@ -174,7 +177,8 @@ class LedServer
             case DisplayType.WEB:
                 if (DisplayClients.FirstOrDefault(d => d is WebDisplay) is WebDisplay webDisplay) 
                 {
-                    var webDisplayConfig = webDisplay.GetConfiguration() as WebDisplayConfiguration;
+                    // var webDisplayConfig = webDisplay.GetConfiguration() as WebDisplayConfiguration;
+                    var webDisplayConfig = webDisplay.GetConfiguration();
                     var json = JsonSerializer.Serialize(webDisplayConfig);
                     context.Response.StatusCode = StatusCodes.Status200OK;
                     context.Response.ContentType = "application/json";
@@ -192,8 +196,27 @@ class LedServer
 
     private async Task HandleUpdateConfig(HttpContext context)
     {
-        var json = await JsonDocument.ParseAsync(context.Request.Body);
+        string? displayType = context.Request.Query["displayType"];
+
+        if(string.IsNullOrEmpty(displayType))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync("\"error\":\"displayType required\"");
+            return;
+        }
+
+        var displayTypeEnum = (DisplayType)Enum.Parse(typeof(DisplayType), displayType);
         
+        if(!Enum.IsDefined(typeof(DisplayType), displayTypeEnum))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync("\"error\":\"invalid displayType\"");
+            return;
+        }
+
+        var json = await JsonDocument.ParseAsync(context.Request.Body);
         var config = JsonSerializer.Deserialize<DisplayConfiguration>(json);
         if(config == null)
         {
@@ -203,21 +226,26 @@ class LedServer
             return;
         }
 
-        switch(config.DisplayType)
+        switch(displayTypeEnum)
         {
             case DisplayType.LED:
                 var ledDisplay = DisplayClients.FirstOrDefault(d => d is LedDisplay) as LedDisplay;
-                var ledDisplayConfig = JsonSerializer.Deserialize<LedDisplayConfiguration>(json);
+                // var ledDisplayConfig = JsonSerializer.Deserialize<LedDisplayConfiguration>(json);
+                // var temp = JsonSerializer.Deserialize<Dummy>(json);
+
+                var ledDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
                 ledDisplay?.UpdateConfiguration(ledDisplayConfig);
                 break;
             case DisplayType.CONSOLE:
                 var consoleDisplay = DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) as ConsoleDisplay;
-                var consoleDisplayConfig = JsonSerializer.Deserialize<ConsoleDisplayConfiguration>(json);
+                // var consoleDisplayConfig = JsonSerializer.Deserialize<ConsoleDisplayConfiguration>(json);
+                var consoleDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
                 consoleDisplay?.UpdateConfiguration(consoleDisplayConfig);
                 break;
             case DisplayType.WEB:
                 var webDisplay = DisplayClients.FirstOrDefault(d => d is WebDisplay) as WebDisplay;
-                var webDisplayConfig = JsonSerializer.Deserialize<WebDisplayConfiguration>(json);
+                // var webDisplayConfig = JsonSerializer.Deserialize<WebDisplayConfiguration>(json);
+                var webDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
                 webDisplay?.UpdateConfiguration(webDisplayConfig);
                 break;
             default:

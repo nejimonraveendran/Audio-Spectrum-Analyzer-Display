@@ -30,6 +30,18 @@ class Program
     
     static void Main(string[] args)
     {
+        // var gradient = PixelColor.GenerateGradient(Color.FromArgb(255, 0, 0), Color.FromArgb(0, 50, 0), 16); //green to orange gradient
+        
+        // for (int i = 0; i < gradient.Length; i++)
+        // {
+        //     var clr = PixelColor.ToConsoleColor(gradient[i]);
+        //     Console.ForegroundColor = clr.ConsoleColor;
+        //     Console.WriteLine(clr.HtmlColor);
+            
+        // }
+        // Console.Read();
+        // return;
+
         const int sampleRate = 44100; //sampling frequency in Hz
 
         var ledServer = new LedServer(_ledServerUrl);

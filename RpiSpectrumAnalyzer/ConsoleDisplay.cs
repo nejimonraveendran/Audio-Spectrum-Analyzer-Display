@@ -5,21 +5,21 @@ namespace RpiSpectrumAnalyzer;
 class ConsoleDisplay : DisplayBase
 {
 
-    private ConsoleColor[] _consoleHues = 
-    {
-        ConsoleColor.DarkRed,  
-        ConsoleColor.Red, 
-        ConsoleColor.DarkYellow, 
-        ConsoleColor.Yellow, 
-        ConsoleColor.Green, 
-        ConsoleColor.DarkGreen,
-        ConsoleColor.Cyan,
-        ConsoleColor.DarkCyan,
-        ConsoleColor.Blue,
-        ConsoleColor.DarkBlue,
-        ConsoleColor.Magenta,
-        ConsoleColor.DarkMagenta
-    };
+    // private ConsoleColor[] _consoleHues = 
+    // {
+    //     ConsoleColor.DarkRed,  
+    //     ConsoleColor.Red, 
+    //     ConsoleColor.DarkYellow, 
+    //     ConsoleColor.Yellow, 
+    //     ConsoleColor.Green, 
+    //     ConsoleColor.DarkGreen,
+    //     ConsoleColor.Cyan,
+    //     ConsoleColor.DarkCyan,
+    //     ConsoleColor.Blue,
+    //     ConsoleColor.DarkBlue,
+    //     ConsoleColor.Magenta,
+    //     ConsoleColor.DarkMagenta
+    // };
 
     private ConsoleColor _peakColor;
     private ConsoleColor[][]? _pixelColors; //private ConsoleColor[,]? _pixelColors;
@@ -58,7 +58,7 @@ class ConsoleDisplay : DisplayBase
 
     public override DisplayConfiguration GetConfiguration()
     {
-        return new ConsoleDisplayConfiguration
+        return new DisplayConfiguration
         {
             DisplayType = DisplayType.LED,
             Rows = _rows,
@@ -78,8 +78,10 @@ class ConsoleDisplay : DisplayBase
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
-            PeakColor = _peakColor,
-            PixelColors = _pixelColors,
+
+            
+            PeakColor = ColorHelper.ConsoleColorToPixelColor(_peakColor),
+            PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.ConsoleColorToPixelColor(p)).ToArray()).ToArray(), //convert to array of arrays
             
         };
     }
@@ -89,16 +91,16 @@ class ConsoleDisplay : DisplayBase
         if(config?.DisplayType != DisplayType.CONSOLE)
             return;
         
-        var consoleDisplayConfig = config as ConsoleDisplayConfiguration;
-        if (consoleDisplayConfig == null)
-            return;
+        // var consoleDisplayConfig = config as ConsoleDisplayConfiguration;
+        // if (consoleDisplayConfig == null)
+        //     return;
 
-        _peakWait = consoleDisplayConfig.PeakWait > 0 ? consoleDisplayConfig.PeakWait : _peakWait;
-        _peakWaitCountDown = consoleDisplayConfig.PeakWaitCountDown > 0 ? consoleDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
-        _transitionSpeed = consoleDisplayConfig.TransitionSpeed > 0 ? consoleDisplayConfig.TransitionSpeed : _transitionSpeed;
-        _amplificationFactor = consoleDisplayConfig.AmplificationFactor > 0 ? consoleDisplayConfig.AmplificationFactor : _amplificationFactor;
-        _showPeaks = consoleDisplayConfig.ShowPeaks;
-        _showPeaksWhenSilent = consoleDisplayConfig.ShowPeaksWhenSilent;
+        // _peakWait = consoleDisplayConfig.PeakWait > 0 ? consoleDisplayConfig.PeakWait : _peakWait;
+        // _peakWaitCountDown = consoleDisplayConfig.PeakWaitCountDown > 0 ? consoleDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
+        // _transitionSpeed = consoleDisplayConfig.TransitionSpeed > 0 ? consoleDisplayConfig.TransitionSpeed : _transitionSpeed;
+        // _amplificationFactor = consoleDisplayConfig.AmplificationFactor > 0 ? consoleDisplayConfig.AmplificationFactor : _amplificationFactor;
+        // _showPeaks = consoleDisplayConfig.ShowPeaks;
+        // _showPeaksWhenSilent = consoleDisplayConfig.ShowPeaksWhenSilent;
 
     }
 
@@ -190,8 +192,8 @@ class ConsoleDisplay : DisplayBase
             _pixelColors[x] = new ConsoleColor[_rows]; //_pixelColors[x, y] = new ConsoleColor[_rows];
             for (int y = 0; y < _rows; y++)
             {
-                int hueIndex = Helpers.Map(y, 0, _rows-1, 5, 0); //map row numbers to the color range green to red
-                _pixelColors[x][y] =  _consoleHues[hueIndex]; //_pixelColors[x, y] =  _consoleHues[hueIndex];
+                int hueIndex = y.Map(0, _rows-1, 5, 0); //map row numbers to the color range green to red
+                _pixelColors[x][y] = ColorHelper.ConsoleHues[hueIndex]; //_pixelColors[x, y] =  _consoleHues[hueIndex];
             }            
         }
     }

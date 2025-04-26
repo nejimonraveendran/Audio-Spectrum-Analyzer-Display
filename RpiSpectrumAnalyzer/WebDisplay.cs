@@ -7,15 +7,15 @@ using System.Text.Json;
 
 class WebDisplay : DisplayBase
 {
-    private Color[][]? _pixelColors; //private Color[,]? _pixelColors;
-    private Color _peakColor;
+    private PixelColor[][]? _pixelColors; //private Color[,]? _pixelColors;
+    private PixelColor _peakColor;
 
     public WebDisplay(int rows, int cols)
     {
         _rows = rows;
         _cols = cols;
-        _pixelColors = new Color[_cols][]; //_pixelColors = new Color[_cols, _rows];
-        _peakColor = Color.FromArgb(255, 0, 0);//  Helpers.HsvToColor(0, 1, 1);  //default, configurable via API call
+        _pixelColors = new PixelColor[_cols][]; //_pixelColors = new Color[_cols, _rows];
+        _peakColor = new PixelColor{R = 255, G = 0, B = 0}; // Color.FromArgb(255, 0, 0);//  Helpers.HsvToColor(0, 1, 1);  //default, configurable via API call
 
         _transitionSpeedMin = 1;
         _transitionSpeed = 2; //default, configurable via API call
@@ -41,7 +41,7 @@ class WebDisplay : DisplayBase
 
     public override DisplayConfiguration GetConfiguration()
     {
-        return new WebDisplayConfiguration
+        return new DisplayConfiguration
         {
             DisplayType = DisplayType.WEB,
             Rows = _rows,
@@ -73,16 +73,16 @@ class WebDisplay : DisplayBase
         if(config?.DisplayType != DisplayType.WEB)
             return;
 
-        var webDisplayConfig = config as WebDisplayConfiguration;
-        if (webDisplayConfig == null)
-            return;
+        // var webDisplayConfig = config as WebDisplayConfiguration;
+        // if (webDisplayConfig == null)
+        //     return;
         
-        _peakWait = webDisplayConfig.PeakWait > 0 ? webDisplayConfig.PeakWait : _peakWait;
-        _peakWaitCountDown = webDisplayConfig.PeakWaitCountDown > 0 ? webDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
-        _transitionSpeed = webDisplayConfig.TransitionSpeed > 0 ? webDisplayConfig.TransitionSpeed : _transitionSpeed;
-        _amplificationFactor = webDisplayConfig.AmplificationFactor > 0 ? webDisplayConfig.AmplificationFactor : _amplificationFactor;
-        _showPeaks = webDisplayConfig.ShowPeaks;
-        _showPeaksWhenSilent = webDisplayConfig.ShowPeaksWhenSilent;
+        // _peakWait = webDisplayConfig.PeakWait > 0 ? webDisplayConfig.PeakWait : _peakWait;
+        // _peakWaitCountDown = webDisplayConfig.PeakWaitCountDown > 0 ? webDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
+        // _transitionSpeed = webDisplayConfig.TransitionSpeed > 0 ? webDisplayConfig.TransitionSpeed : _transitionSpeed;
+        // _amplificationFactor = webDisplayConfig.AmplificationFactor > 0 ? webDisplayConfig.AmplificationFactor : _amplificationFactor;
+        // _showPeaks = webDisplayConfig.ShowPeaks;
+        // _showPeaksWhenSilent = webDisplayConfig.ShowPeaksWhenSilent;
      }
 
 
@@ -143,11 +143,13 @@ class WebDisplay : DisplayBase
 
     private void SetupDefaultColors()
     {
-        var gradient = Helpers.GenerateGradient(Color.FromArgb(90, 180, 0), Color.FromArgb(255, 100, 0), _rows); //green to orange gradient
+        var fromColor = new PixelColor{R = 100, G = 255, B = 0};
+        var toColor = new PixelColor{R = 255, G = 100, B = 0};   
+        var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
         
         for (int x = 0; x < _cols; x++)
         {
-            _pixelColors[x] = new Color[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+            _pixelColors[x] = new PixelColor[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
             for (int y = 0; y < _rows; y++)
             {
                 _pixelColors[x][y] = gradient[y]; //1 = full saturation, 

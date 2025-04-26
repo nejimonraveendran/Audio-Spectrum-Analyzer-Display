@@ -32,6 +32,19 @@
             <!--  -->
         </div>        
     </div>
+    <script src="Helpers.js"></script>
+    <script src="HttpClient.js"></script>
+    <script src="DisplayConfig.js"></script>
+    
+    <script>
 
+        let _httpClient = new HttpClient();
+        let _webDisplayConfig;
+
+        $(document).ready(() => {
+            _webDisplayConfig = new DisplayConfig('.content', new Helpers(), _httpClient, _displayType.CONSOLE);
+            _webDisplayConfig.loadConfig();
+        });
+    </script>
 </body>
 </html>
