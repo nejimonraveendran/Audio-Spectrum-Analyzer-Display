@@ -11,3 +11,5 @@ const DISPLAY_TYPE = {
     CONSOLE: 2,
     WEB: 3
 };
+
+

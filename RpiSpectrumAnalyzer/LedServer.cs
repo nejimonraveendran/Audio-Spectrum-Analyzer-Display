@@ -117,14 +117,16 @@ class LedServer
             var webDisplay = DisplayClients.FirstOrDefault(d => d is WebDisplay) as WebDisplay;
             if(webDisplay != null)
             {
-                webDisplay.SocketClients.RemoveAll(sc => sc.Id == clientId); //remove old client
-                webDisplay.SocketClients.RemoveAll(sc => sc.Socket == null || sc.Socket.State != WebSocketState.Open); //remove closed sockets
-                webDisplay.SocketClients.Add(new SocketClient{ Id = clientId, Socket = webSocket });
+                webDisplay.AddSocketClient(new SocketClient{ Id = clientId, Socket = webSocket });
+
+                // webDisplay.SocketClients.RemoveAll(sc => sc.Id == clientId); //remove old client
+                // webDisplay.SocketClients.RemoveAll(sc => sc.Socket == null || sc.Socket.State != WebSocketState.Open); //remove closed sockets
+                // webDisplay.SocketClients.Add(new SocketClient{ Id = clientId, Socket = webSocket });
 
                 //send startup message to new client
-                var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.STARTUP, Data = new {Config = webDisplay.GetConfiguration()}});
-                var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload));
-                await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                // var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.STARTUP, Data = new {Config = webDisplay.GetConfiguration()}});
+                // var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload));
+                // await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
 
             await new TaskCompletionSource<object>().Task; //required to keep the middleware pipeline up and running.  Otherwise, WS will immediately disconnect.

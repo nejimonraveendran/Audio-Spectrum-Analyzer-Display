@@ -17,7 +17,7 @@ struct LevelInfo
 
 struct WebDisplayData
 {
-    public string Event { get; set; }
+    public WebDisplayEvent Event { get; set; }
     public object Data { get; set; }
 }
 
@@ -30,12 +30,12 @@ struct ColPeak
     public long PrevMilSecs { get; set; }    
 }
 
-static class WebDisplayEvent
-{
-    public static string STARTUP => "startup";
-    public static string COMMAND => "command";
-    public static string DISPLAY => "display";
-}
+// static class WebDisplayEvent
+// {
+//     public static string STARTUP => "startup";
+//     public static string COMMAND => "command";
+//     public static string DISPLAY => "display";
+// }
 
 // class CaptureParams
 // {
@@ -56,6 +56,16 @@ enum DisplayType
     CONSOLE = 2,
     WEB = 3
 }
+
+enum WebDisplayEvent
+{
+    DISPLAY = 2,
+    CONFIG_CHANGED = 3,
+    CLEAR = 4
+}
+
+
+
 
 class DisplayConfiguration
 {

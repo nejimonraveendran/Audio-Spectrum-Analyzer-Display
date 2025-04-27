@@ -36,8 +36,16 @@ class WebDisplay : DisplayBase
 
     public List<SocketClient> SocketClients { get; set; }
 
-    // public override int Rows => _rows;
-    // public override int Cols => _cols;
+    public void AddSocketClient(SocketClient socketClient)
+    {
+        SocketClients.RemoveAll(sc => sc.Id == socketClient.Id); //remove old client
+        SocketClients.RemoveAll(sc => sc.Socket == null || sc.Socket.State != WebSocketState.Open); //remove closed sockets
+        SocketClients.Add(socketClient);
+
+        //send startup config message
+        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.CONFIG_CHANGED, Data = new {Config = this.GetConfiguration()}});
+        SendToClients(payload);
+    }
 
     public override DisplayConfiguration GetConfiguration()
     {
@@ -77,12 +85,15 @@ class WebDisplay : DisplayBase
         _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
         _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
         _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
+
+        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.CONFIG_CHANGED, Data = new {Config = this.GetConfiguration()}});
+        SendToClients(payload);
      }
 
 
     public override void Clear()
     {
-        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.COMMAND, Data = new {Command = "clear"}});
+        var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.CLEAR });
         SendToClients(payload);
     }
 

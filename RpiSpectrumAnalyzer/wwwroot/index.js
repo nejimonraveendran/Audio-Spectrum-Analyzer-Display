@@ -1,9 +1,10 @@
 let _webDisplay;
 let _socketClient;
 
-const  _events = {
-    STARTUP: 'startup',
-    DISPLAY: 'display',
+const DISPLAY_EVENT ={
+    DISPLAY: 2,
+    CONFIG_CHANGED: 3,
+    CLEAR: 4
 };
 
 
@@ -41,10 +42,9 @@ let onSocketDisConnect = () =>{
 
 
 let onSocketMessage = (data) => {
-    if(data.Event == _events.STARTUP){
-        console.log(data.Data);
+    if(data.Event == DISPLAY_EVENT.CONFIG_CHANGED){
         _webDisplay = new WebDisplay(data.Data.Config, '.content', new Helpers());
-    }else if (data.Event == _events.DISPLAY){
+    }else if (data.Event == DISPLAY_EVENT.DISPLAY){
         _webDisplay.displayLevels(data.Data);
     }
 };

@@ -29,8 +29,6 @@ class WebDisplay{
         }
 
         this.buildMatrix();
-
-        console.log(this._pixelColors);
     }
 
     //property setters
@@ -111,8 +109,13 @@ class WebDisplay{
         }
 
         //set peaks
+        let targetPeakRow = 1;
+        if(this._config.ShowPeaksWhenSilent){
+            targetPeakRow = 0;
+        }
+
         let color = '';       
-        if(this._colPeaks[col].row >= 0) //if value (x) not at bottom, set peak color of the row
+        if(this._colPeaks[col].row > targetPeakRow) //if value (x) not at bottom, set peak color of the row
         {
             color = this._peakColor;
         }
