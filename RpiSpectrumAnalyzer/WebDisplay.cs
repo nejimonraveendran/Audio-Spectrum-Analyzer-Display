@@ -36,8 +36,8 @@ class WebDisplay : DisplayBase
 
     public List<SocketClient> SocketClients { get; set; }
 
-    public override int Rows => _rows;
-    public override int Cols => _cols;
+    // public override int Rows => _rows;
+    // public override int Cols => _cols;
 
     public override DisplayConfiguration GetConfiguration()
     {
@@ -46,7 +46,6 @@ class WebDisplay : DisplayBase
             DisplayType = DisplayType.WEB,
             Rows = _rows,
             Cols = _cols,
-
             PeakWaitMin = _peakWaitMin,
             PeakWait = _peakWait,
             PeakWaitMax = _peakWaitMax,
@@ -70,19 +69,14 @@ class WebDisplay : DisplayBase
 
     public override void UpdateConfiguration(DisplayConfiguration? config)
     {
-        if(config?.DisplayType != DisplayType.WEB)
-            return;
-
-        // var webDisplayConfig = config as WebDisplayConfiguration;
-        // if (webDisplayConfig == null)
-        //     return;
-        
-        // _peakWait = webDisplayConfig.PeakWait > 0 ? webDisplayConfig.PeakWait : _peakWait;
-        // _peakWaitCountDown = webDisplayConfig.PeakWaitCountDown > 0 ? webDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
-        // _transitionSpeed = webDisplayConfig.TransitionSpeed > 0 ? webDisplayConfig.TransitionSpeed : _transitionSpeed;
-        // _amplificationFactor = webDisplayConfig.AmplificationFactor > 0 ? webDisplayConfig.AmplificationFactor : _amplificationFactor;
-        // _showPeaks = webDisplayConfig.ShowPeaks;
-        // _showPeaksWhenSilent = webDisplayConfig.ShowPeaksWhenSilent;
+        _peakWait = config?.PeakWait > 0 ? config.PeakWait : _peakWait;
+        _peakWaitCountDown = config?.PeakWaitCountDown > 0 ? config.PeakWaitCountDown : _peakWaitCountDown;
+        _transitionSpeed = config?.TransitionSpeed > 0 ? config.TransitionSpeed : _transitionSpeed;
+        _amplificationFactor = config?.AmplificationFactor > 0 ? config.AmplificationFactor : _amplificationFactor;
+        _showPeaks = config?.ShowPeaks == null ? false : config.ShowPeaks;
+        _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
+        _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
+        _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
      }
 
 

@@ -32,6 +32,8 @@
             <!--  -->
         </div>        
     </div>
+
+    <script src="Common.js"></script>
     <script src="Helpers.js"></script>
     <script src="HttpClient.js"></script>
     <script src="DisplayConfig.js"></script>
@@ -42,7 +44,7 @@
         let _webDisplayConfig;
 
         $(document).ready(() => {
-            _webDisplayConfig = new DisplayConfig('.content', new Helpers(), _httpClient, _displayType.LED);
+            _webDisplayConfig = new DisplayConfig('.content', new Helpers(), _httpClient, DISPLAY_TYPE.LED);
             _webDisplayConfig.loadConfig();
         });
     </script>

@@ -8,7 +8,7 @@ class LedDisplay : DisplayBase
 {   
     private Ws2812b _ledMatrix;
     private double[] _curLevels;
-    private PixelColor[][]? _pixelColors; //private Color[,]? _pixelColors;
+    private PixelColor[][]? _pixelColors; 
     private ColPeak[] _colPeaks;
     private PixelColor _peakColor;
 
@@ -21,7 +21,7 @@ class LedDisplay : DisplayBase
         _rows = rows;
         _cols = cols;
         _curLevels = new double[_rows];
-        _pixelColors = new PixelColor[_cols][]; //_pixelColors = new Color[_cols, _rows];
+        _pixelColors = new PixelColor[_cols][]; 
         _colPeaks = new ColPeak[_cols];
 
         _transitionSpeedMin = 1;
@@ -57,8 +57,8 @@ class LedDisplay : DisplayBase
 
     }
 
-    public override int Rows => _rows;
-    public override int Cols => _cols;
+    // public override int Rows => _rows;
+    // public override int Cols => _cols;
     public override bool IsBrightnessSupported => true;
 
     public override DisplayConfiguration GetConfiguration()
@@ -90,23 +90,18 @@ class LedDisplay : DisplayBase
             PeakColor = ColorHelper.FromLedColor(_peakColor, _brightness),
             PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.FromLedColor(p, _brightness)).ToArray()).ToArray(), //convert to array of arrays
 
-            
         };
     }
 
     public override void UpdateConfiguration(DisplayConfiguration? config)
     {
-        // if(config?.DisplayType != DisplayType.LED)
-        //     return;
-
-        // _peakWait = ledDisplayConfig.PeakWait > 0 ? ledDisplayConfig.PeakWait : _peakWait;
-        // _peakWaitCountDown = ledDisplayConfig.PeakWaitCountDown > 0 ? ledDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
-        // _transitionSpeed = ledDisplayConfig.TransitionSpeed > 0 ? ledDisplayConfig.TransitionSpeed : _transitionSpeed;
-        // _brightness = ledDisplayConfig.Brightness > 0 ? ledDisplayConfig.Brightness : _brightness;
-        // _amplificationFactor = ledDisplayConfig.AmplificationFactor > 0 ? ledDisplayConfig.AmplificationFactor : _amplificationFactor;
-        // _showPeaks = ledDisplayConfig.ShowPeaks;
-        // _showPeaksWhenSilent = ledDisplayConfig.ShowPeaksWhenSilent;
-
+        _peakWait = config?.PeakWait > 0 ? config.PeakWait : _peakWait;
+        _peakWaitCountDown = config?.PeakWaitCountDown > 0 ? config.PeakWaitCountDown : _peakWaitCountDown;
+        _transitionSpeed = config?.TransitionSpeed > 0 ? config.TransitionSpeed : _transitionSpeed;
+        _brightness = config?.Brightness > 0 ? config.Brightness : _brightness;
+        _amplificationFactor = config?.AmplificationFactor > 0 ? config.AmplificationFactor : _amplificationFactor;
+        _showPeaks = config?.ShowPeaks == null ? false : config.ShowPeaks;
+        _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
         _peakColor = config?.PeakColor != null ? ColorHelper.ToLedColor(config.PeakColor, _brightness) : _peakColor;
         _pixelColors = config?.PixelColors != null ? config.PixelColors.Select(c => c.Select(p => ColorHelper.ToLedColor(p, _brightness)).ToArray())?.ToArray() : _pixelColors;
         
@@ -127,7 +122,6 @@ class LedDisplay : DisplayBase
         DisplayLevels(levels);
 
     }
-
 
     private void DisplayLevels(LevelInfo[] targetLevels)
     {
@@ -167,13 +161,8 @@ class LedDisplay : DisplayBase
     {
         //green to orange gradient
         var fromColor = ColorHelper.ToLedColor(new PixelColor{R = 100, G = 255, B = 0}, _brightness);
-        var toColor = ColorHelper.ToLedColor(new PixelColor{R = 255, G = 100, B = 0}, _brightness);
-        
+        var toColor = ColorHelper.ToLedColor(new PixelColor{R = 255, G = 100, B = 0}, _brightness);        
         var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
-
-        // var gradient = ColorHelper.GenerateGradient(ColorHelper.ToLedColor(new PixelColor{R = 100, G = 155, B = 0}, _brightness), 
-        //                                 ColorHelper.ToLedColor(new PixelColor{R = 255, G = 100, B = 0}, _brightness),
-        //                                     _rows); 
 
         for (int x = 0; x < _cols; x++)
         {
@@ -181,9 +170,6 @@ class LedDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
-                // double hue = Helpers.Map(y, 0, _rows, 120, 1); //map row numbers to the hue range green (120) to red (1)
-                // _pixelColors[x][y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
-                //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
             }            
         }
     }

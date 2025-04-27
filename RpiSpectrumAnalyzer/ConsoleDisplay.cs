@@ -53,14 +53,14 @@ class ConsoleDisplay : DisplayBase
 
     }
 
-    public override int Rows => _rows;
-    public override int Cols => _cols;
+    // public override int Rows => _rows;
+    // public override int Cols => _cols;
 
     public override DisplayConfiguration GetConfiguration()
     {
         return new DisplayConfiguration
         {
-            DisplayType = DisplayType.LED,
+            DisplayType = DisplayType.CONSOLE,
             Rows = _rows,
             Cols = _cols,
             PeakWaitMin = _peakWaitMin,
@@ -78,7 +78,6 @@ class ConsoleDisplay : DisplayBase
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
-
             
             PeakColor = ColorHelper.ConsoleColorToPixelColor(_peakColor),
             PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.ConsoleColorToPixelColor(p)).ToArray()).ToArray(), //convert to array of arrays
@@ -88,8 +87,8 @@ class ConsoleDisplay : DisplayBase
 
     public override void UpdateConfiguration(DisplayConfiguration? config)
     {
-        if(config?.DisplayType != DisplayType.CONSOLE)
-            return;
+        // if(config?.DisplayType != DisplayType.CONSOLE)
+        //     return;
         
         // var consoleDisplayConfig = config as ConsoleDisplayConfiguration;
         // if (consoleDisplayConfig == null)

@@ -88,7 +88,7 @@ class LedServer
                 {
                     logging.ClearProviders();
                 });
-
+    
             }).Build();
 
             host.Run();
@@ -122,7 +122,7 @@ class LedServer
                 webDisplay.SocketClients.Add(new SocketClient{ Id = clientId, Socket = webSocket });
 
                 //send startup message to new client
-                var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.STARTUP, Data = new {Rows = webDisplay.Rows, Cols = webDisplay.Cols}});
+                var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.STARTUP, Data = new {Config = webDisplay.GetConfiguration()}});
                 var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload));
                 await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
@@ -139,80 +139,87 @@ class LedServer
     private async Task HandleGetConfig(HttpContext context)
     {
         string? displayType = context.Request.Query["displayType"];
-
         if(string.IsNullOrEmpty(displayType))
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("\"error\":\"displayType required\"");
+            await RespondToBadRequest(context, "displayType required");
             return;
         }
 
         var displayTypeEnum = (DisplayType)Enum.Parse(typeof(DisplayType), displayType);
-        
-        switch(displayTypeEnum)
+        if(!Enum.IsDefined(typeof(DisplayType), displayTypeEnum))
         {
-            case DisplayType.LED:
-                if (DisplayClients.FirstOrDefault(d => d is LedDisplay) is LedDisplay ledDisplay) 
-                {
-                    // var ledDisplayConfig = ledDisplay.GetConfiguration() as LedDisplayConfiguration;
-                    var ledDisplayConfig = ledDisplay.GetConfiguration();
-                    var json = JsonSerializer.Serialize(ledDisplayConfig);
-                    context.Response.StatusCode = StatusCodes.Status200OK;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsync(json);
-                }
-                break;
-            case DisplayType.CONSOLE:
-                if (DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) is ConsoleDisplay consoleDisplay) 
-                {
-                    // var consoleDisplayConfig = consoleDisplay.GetConfiguration() as ConsoleDisplayConfiguration;
-                    var consoleDisplayConfig = consoleDisplay.GetConfiguration();
-                    var json = JsonSerializer.Serialize(consoleDisplayConfig);
-                    context.Response.StatusCode = StatusCodes.Status200OK;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsync(json);
-                }
-                break;
-            case DisplayType.WEB:
-                if (DisplayClients.FirstOrDefault(d => d is WebDisplay) is WebDisplay webDisplay) 
-                {
-                    // var webDisplayConfig = webDisplay.GetConfiguration() as WebDisplayConfiguration;
-                    var webDisplayConfig = webDisplay.GetConfiguration();
-                    var json = JsonSerializer.Serialize(webDisplayConfig);
-                    context.Response.StatusCode = StatusCodes.Status200OK;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsync(json);
-                }
-                break;
-            default:
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync("\"error\":\"displayType not found\"");
-                break;
+            await RespondToBadRequest(context, "invalid displayType");
+            return;
         }
+
+        var display = DisplayClients.FirstOrDefault(d => d.GetConfiguration()?.DisplayType == displayTypeEnum);
+        await SendResult(context, display?.GetConfiguration());
+        
+        // var displayTypeEnum = (DisplayType)Enum.Parse(typeof(DisplayType), displayType);
+        // var display = DisplayClients.FirstOrDefault(d => d.GetConfiguration()?.DisplayType == displayTypeEnum);
+        
+
+        // switch(displayTypeEnum)
+        // {
+        //     case DisplayType.LED:
+        //         if (DisplayClients.FirstOrDefault(d => d is LedDisplay) is LedDisplay ledDisplay) 
+        //         {
+        //             await SendResult(context, ledDisplay.GetConfiguration());
+
+        //             // var json = JsonSerializer.Serialize(ledDisplayConfig);
+        //             // context.Response.StatusCode = StatusCodes.Status200OK;
+        //             // context.Response.ContentType = "application/json";
+        //             // await context.Response.WriteAsync(json);
+        //         }
+        //         break;
+        //     case DisplayType.CONSOLE:
+        //         if (DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) is ConsoleDisplay consoleDisplay) 
+        //         {
+        //             // var consoleDisplayConfig = consoleDisplay.GetConfiguration() as ConsoleDisplayConfiguration;
+        //             var consoleDisplayConfig = consoleDisplay.GetConfiguration();
+        //             var json = JsonSerializer.Serialize(consoleDisplayConfig);
+        //             context.Response.StatusCode = StatusCodes.Status200OK;
+        //             context.Response.ContentType = "application/json";
+        //             await context.Response.WriteAsync(json);
+        //         }
+        //         break;
+        //     case DisplayType.WEB:
+        //         if (DisplayClients.FirstOrDefault(d => d is WebDisplay) is WebDisplay webDisplay) 
+        //         {
+        //             await SendResult(context, webDisplay.GetConfiguration());
+
+        //             // var webDisplayConfig = webDisplay.GetConfiguration() as WebDisplayConfiguration;
+        //             // var webDisplayConfig = webDisplay.GetConfiguration();
+        //             // var json = JsonSerializer.Serialize(webDisplayConfig);
+        //             // context.Response.StatusCode = StatusCodes.Status200OK;
+        //             // context.Response.ContentType = "application/json";
+        //             // await context.Response.WriteAsync(json);
+        //         }
+        //         break;
+        //     default:
+        //         await RespondToBadRequest(context, "displayType not found");
+        //         break;
+        //         // context.Response.StatusCode = StatusCodes.Status404NotFound;
+        //         // context.Response.ContentType = "application/json";
+        //         // await context.Response.WriteAsync("{\"error\":\"displayType not found\"}");
+        //         // break;
+        // }
 
     }
 
     private async Task HandleUpdateConfig(HttpContext context)
     {
         string? displayType = context.Request.Query["displayType"];
-
         if(string.IsNullOrEmpty(displayType))
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("\"error\":\"displayType required\"");
+            await RespondToBadRequest(context, "displayType required");
             return;
         }
 
         var displayTypeEnum = (DisplayType)Enum.Parse(typeof(DisplayType), displayType);
-        
         if(!Enum.IsDefined(typeof(DisplayType), displayTypeEnum))
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("\"error\":\"invalid displayType\"");
+            await RespondToBadRequest(context, "invalid displayType");
             return;
         }
 
@@ -220,44 +227,53 @@ class LedServer
         var config = JsonSerializer.Deserialize<DisplayConfiguration>(json);
         if(config == null)
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("\"error\":\"invalid config\"");
+            await RespondToBadRequest(context, "invalid config");
             return;
         }
 
-        switch(displayTypeEnum)
-        {
-            case DisplayType.LED:
-                var ledDisplay = DisplayClients.FirstOrDefault(d => d is LedDisplay) as LedDisplay;
-                // var ledDisplayConfig = JsonSerializer.Deserialize<LedDisplayConfiguration>(json);
-                // var temp = JsonSerializer.Deserialize<Dummy>(json);
+        var display = DisplayClients.FirstOrDefault(d => d.GetConfiguration()?.DisplayType == displayTypeEnum);
+        display?.UpdateConfiguration(config);
+        await SendResult(context, new {Result = 0});
 
-                var ledDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
-                ledDisplay?.UpdateConfiguration(ledDisplayConfig);
-                break;
-            case DisplayType.CONSOLE:
-                var consoleDisplay = DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) as ConsoleDisplay;
-                // var consoleDisplayConfig = JsonSerializer.Deserialize<ConsoleDisplayConfiguration>(json);
-                var consoleDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
-                consoleDisplay?.UpdateConfiguration(consoleDisplayConfig);
-                break;
-            case DisplayType.WEB:
-                var webDisplay = DisplayClients.FirstOrDefault(d => d is WebDisplay) as WebDisplay;
-                // var webDisplayConfig = JsonSerializer.Deserialize<WebDisplayConfiguration>(json);
-                var webDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
-                webDisplay?.UpdateConfiguration(webDisplayConfig);
-                break;
-            default:
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync("\"error\":\"displayType not found\"");
-                return;
-        }
+        // switch(displayTypeEnum)
+        // {
+        //     case DisplayType.LED:
+        //         var ledDisplay = DisplayClients.FirstOrDefault(d => d is LedDisplay) as LedDisplay;
+        //         var ledDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
+        //         ledDisplay?.UpdateConfiguration(ledDisplayConfig);
+        //         break;
+        //     case DisplayType.CONSOLE:
+        //         var consoleDisplay = DisplayClients.FirstOrDefault(d => d is ConsoleDisplay) as ConsoleDisplay;
+        //         var consoleDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
+        //         consoleDisplay?.UpdateConfiguration(consoleDisplayConfig);
+        //         break;
+        //     case DisplayType.WEB:
+        //         var webDisplay = DisplayClients.FirstOrDefault(d => d is WebDisplay) as WebDisplay;
+        //         var webDisplayConfig = JsonSerializer.Deserialize<DisplayConfiguration>(json);
+        //         webDisplay?.UpdateConfiguration(webDisplayConfig);
+        //         break;
+        //     default:
+        //         await RespondToBadRequest(context, "invalid displayType");
+        //         return;
+        // }
 
+        // await SendResult(context, new {Result = 0});
+    }
+
+
+    private async Task RespondToBadRequest(HttpContext context, string message)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
         context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync($"{{\"Error\":\"{message}\"}}");
+    }
+
+    private async Task SendResult<T>(HttpContext context, T result)
+    {
+        var json = JsonSerializer.Serialize<T>(result);
         context.Response.StatusCode = StatusCodes.Status200OK;
-        await context.Response.WriteAsync("\"result\":0");
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(json);
     }
 
 }

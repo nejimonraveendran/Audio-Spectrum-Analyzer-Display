@@ -82,8 +82,9 @@ class DisplayConfiguration
     public bool IsBrightnessSupported { get; set; }
     public PixelColor PeakColor { get; set; }
     public PixelColor[][]? PixelColors { get; set; } 
-
-
+    public PixelColor GradientBottomColor { get; set; }
+    public PixelColor GradientTopColor { get; set; }
+    
 }
 
 

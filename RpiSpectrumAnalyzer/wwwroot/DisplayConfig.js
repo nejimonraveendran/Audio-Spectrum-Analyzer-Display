@@ -1,9 +1,3 @@
-let _displayType = {
-    LED: 1,
-    CONSOLE: 2,
-    WEB: 3
-};
-
 class DisplayConfig  {
     constructor(parentElement, helpers, httpClient, displayType) {
         this._httpClient = httpClient;
@@ -33,20 +27,26 @@ class DisplayConfig  {
         this._gradientBottomId = 'gradientBottom';
         this._btnDeployId = 'btnDeploy';
         this._peakColorId = 'peakColor';
+        this._sldPeakWaitId = 'peakWait';
+        this._sldPeakFalldownId = 'sldPeakFalldown';
+        this._sldTransitionSpeedId = 'sldTransitionSpeed';
+        this._sldAmplificationId = 'sldAmplification';
+        this._sldBrightnessId = 'sldBrightness';
+        this._chkShowPeakId = 'chkShowPeakId';
+        this._chkShowPeaksWhenSilent = 'chkShowPeaksWhenSilent';
         
         this._blackPixel = 'black'; 
         this._pixelWid = this._winWid / (this._cols * 2);
         this._pixelHgt =  this._pixelWid;
         this._html = '';    
         this._gradient = [];   
-        this._configBaseUrl = 'http://10.0.0.16:8090/api/config'; 
+        this._configUrl = URL.apiServer + '?displayType=' + this._displayType; 
 
         // this.buildConfigUi();
     }
 
     loadConfig() {
-        let configUrl = this._configBaseUrl + '?displayType=' + this._displayType;
-        this._httpClient.get(configUrl)
+        this._httpClient.get(this._configUrl)
             .then((config) => {
                 console.log(config);
                 
@@ -86,11 +86,7 @@ class DisplayConfig  {
     }
 
     saveConfig(newConfig) {
-        console.log(newConfig);
-
-        let configUrl = this._configBaseUrl + '?displayType=' + this._displayType;
-        
-        this._httpClient.post(configUrl, newConfig)
+        this._httpClient.post(this._configUrl, newConfig)
             .then((result) => {
                 console.log(result);
             })
@@ -120,6 +116,22 @@ class DisplayConfig  {
     deploy(){
         let payload = {};
 
+        //set slider values
+        payload.PeakWait = parseInt($(`#${this._sldPeakWaitId}`).val());
+        payload.Brightness = parseInt($(`#${this._sldBrightnessId}`).val());
+        payload.TransitionSpeed = parseInt($(`#${this._sldTransitionSpeedId}`).val());
+        payload.PeakWaitCountDown = parseInt($(`#${this._sldPeakFalldownId}`).val());
+        payload.AmplificationFactor = parseInt($(`#${this._sldAmplificationId}`).val());
+
+        //set checkbox values
+        payload.ShowPeaks = $(`#${this._chkShowPeakId}`).is(':checked');
+        payload.ShowPeaksWhenSilent = $(`#${this._chkShowPeaksWhenSilent}`).is(':checked');
+
+        //set peak color
+        let peakPixelColor = this._helpers.hexStringToRgbJson($(`#${this._peakColorId}`).val());
+        payload.PeakColor = {R: peakPixelColor.r, G: peakPixelColor.g, B: peakPixelColor.b};
+        
+        //set pixels
         let pixelColors = [];
         for (let x = 0; x < this._cols; x++) {
             let columnPixels = [];
@@ -130,13 +142,9 @@ class DisplayConfig  {
             }
             pixelColors.push(columnPixels);
         }
-
-        let peakPixelColor = this._helpers.hexStringToRgbJson($(`#${this._peakColorId}`).val());
-        payload.PeakColor = {R: peakPixelColor.r, G: peakPixelColor.g, B: peakPixelColor.b};
         payload.PixelColors = pixelColors;
 
         this.saveConfig(payload);
-
     }
 
     setGradient() {
@@ -154,24 +162,24 @@ class DisplayConfig  {
 
     buildSliders(){
         this._html += `<div id="slidersContainer" style="width: 100%; display: flex; flex-direction: column; align-items: start; padding: 10px;">`;
-        this._html += `<label>Peak wait</label>`;
-        this._html += `<input id="sldPeakWait" type="range" min="${this._peakWaitMin}" max="${this._peakWaitMax}" step="1" value="${this._peakWait}" style="width:100%;margin-bottom:20px;"/>`;
+        this._html += `<label>Peak Wait</label>`;
+        this._html += `<input id="${this._sldPeakWaitId}" type="range" min="${this._peakWaitMin}" max="${this._peakWaitMax}" step="1" value="${this._peakWait}" style="width:100%;margin-bottom:20px;"/>`;
         
-        this._html += `<label>Peak speed</label>`;
-        this._html += `<input id="sldPeakFalldown" type="range" min="${this._peakWaitCountDownMin}" max="${this._peakWaitCountDownMax}" step="1" value="${this._peakWaitCountDown}" style="width:100%;margin-bottom:20px;"/>`;
+        this._html += `<label>Peak Fall Interval</label>`;
+        this._html += `<input id="${this._sldPeakFalldownId}" type="range" min="${this._peakWaitCountDownMin}" max="${this._peakWaitCountDownMax}" step="1" value="${this._peakWaitCountDown}" style="width:100%;margin-bottom:20px;"/>`;
         
-        this._html += `<label>Level smoothness</label>`;
-        this._html += `<input id="sldTransitionSpeed" type="range" min="${this._transitionSpeedMin}" max="${this._transitionSpeedMax}" step="1" value="${this._transitionSpeed}" style="width:100%;margin-bottom:20px;"/>`;
+        this._html += `<label>Transition Energy</label>`;
+        this._html += `<input id="${this._sldTransitionSpeedId}" type="range" min="${this._transitionSpeedMin}" max="${this._transitionSpeedMax}" step="1" value="${this._transitionSpeed}" style="width:100%;margin-bottom:20px;"/>`;
         
-        this._html += `<label>Level strength</label>`;
-        this._html += `<input id="sldAmplification" type="range" min="${this._amplificationFactorMin}" max="${this._amplificationFactorMax}" step="1" value="${this._amplificationFactor}" style="width:100%;margin-bottom:20px;"/>`;
+        this._html += `<label>Level Amplification</label>`;
+        this._html += `<input id="${this._sldAmplificationId}" type="range" min="${this._amplificationFactorMin}" max="${this._amplificationFactorMax}" step="1" value="${this._amplificationFactor}" style="width:100%;margin-bottom:20px;"/>`;
 
         if(this._isBrightnessSupported){
             this._html += `<label>Brightness</label>`;
-            this._html += `<input id="sldBrightness" type="range" min="${this._brightnessMin}" max="${this._brightnessMax}" step="1" value="${this._brightness}" style="width:100%;margin-bottom:20px;"/>`;
+            this._html += `<input id="${this._sldBrightnessId}" type="range" min="${this._brightnessMin}" max="${this._brightnessMax}" step="1" value="${this._brightness}" style="width:100%;margin-bottom:20px;"/>`;
         }
         else {
-            this._html += `<input id="sldBrightness" type="range" min="0" max="0" step="0" value="0" style="width:100%;margin-bottom:20px;display:none;" disabled/>`;
+            this._html += `<input id="${this._sldBrightnessId}" type="range" min="0" max="0" step="0" value="0" style="width:100%;margin-bottom:20px;display:none;" disabled/>`;
         }
 
         this._html += `</div>`;
@@ -180,10 +188,10 @@ class DisplayConfig  {
 
     buildToggles(){
         this._html += `<div id="togglesContainer" style="width: 100%; display: flex; flex-direction: row; align-items: start; padding-left: 20px;">`;
-        this._html += `<input id="chkShowPeak" type="checkbox" ${this._showPeaks ? "checked" : ""}/>`;
+        this._html += `<input id="${this._chkShowPeakId}" type="checkbox" ${this._showPeaks ? "checked" : ""}/>`;
         this._html += `<label>Show peaks</label>`;
 
-        this._html += `<input id="chkShowPeaksWhenSilent" type="checkbox" style="margin-left: 50px;" ${this._showPeaksWhenSilent ? "checked" : ""}/>`;
+        this._html += `<input id="${this._chkShowPeaksWhenSilent}" type="checkbox" style="margin-left: 50px;" ${this._showPeaksWhenSilent ? "checked" : ""}/>`;
         this._html += `<label>Show bttom peaks when silent</label>`;
 
         this._html += `</div>`;
@@ -253,7 +261,7 @@ class DisplayConfig  {
 
     buildDeployButton(){
         this._html += `<div id="deployButtonContainer" style="width: 100%; display: flex; flex-direction: row; justify-content: center; margin-top: 20px;">`;
-        this._html += `<button id="${this._btnDeployId}" style="width:200px;height:100px;background-color:rgb(139, 187, 250);cursor:pointer;font-weight: bolder;">Deploy</button>`;
+        this._html += `<button id="${this._btnDeployId}" style="width:200px;height:100px;background-color:lightblue;cursor:pointer;font-weight:bolder;" onmouseover="this.style.backgroundColor='rgb(68, 127, 235)'" onmouseout="this.style.backgroundColor='lightblue'">Deploy</button>`;
         this._html += `</div>`;
         return this._html;
     }

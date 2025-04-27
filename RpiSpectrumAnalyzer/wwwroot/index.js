@@ -1,6 +1,6 @@
-let _socketServer = "ws://10.0.0.16:8090/ws";
 let _webDisplay;
 let _socketClient;
+
 const  _events = {
     STARTUP: 'startup',
     DISPLAY: 'display',
@@ -8,7 +8,7 @@ const  _events = {
 
 
 $(document).ready(() => {
-    _socketClient = new SocketClient(_socketServer, onSocketConnect, onSocketDisConnect, onSocketMessage);            
+    _socketClient = new SocketClient(URL.socketServer, onSocketConnect, onSocketDisConnect, onSocketMessage);            
     _socketClient.connect();
 
     window.setInterval(() => {
@@ -42,9 +42,9 @@ let onSocketDisConnect = () =>{
 
 let onSocketMessage = (data) => {
     if(data.Event == _events.STARTUP){
-        _webDisplay = new WebDisplay(data.Data.Rows, data.Data.Cols, '.content', new Helpers());
+        console.log(data.Data);
+        _webDisplay = new WebDisplay(data.Data.Config, '.content', new Helpers());
     }else if (data.Event == _events.DISPLAY){
-        // console.log(data.Data);
         _webDisplay.displayLevels(data.Data);
     }
 };

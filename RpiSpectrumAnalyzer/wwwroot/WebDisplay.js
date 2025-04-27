@@ -1,32 +1,36 @@
 class WebDisplay{
-    constructor(rows, cols, parentElement, helpers){
+    constructor(config, parentElement, helpers){
+        this._config = config;
         this._helpers = helpers;
         this._parentElement = parentElement;
         this._winWid = window.innerWidth;
         this._winHgt = window.innerHeight;
-        this._rows = rows;
-        this._cols = cols;  
-        this._pixelColors = [,];
-        this._curLevels = [this._cols];
-        this._colPeaks = [this._cols];
-        this._peakColor = 'red';
+
+        this._pixelColors = [];
+        this._curLevels = [];
+        this._peakColor = this._helpers.rgbToHexString(this._config.PeakColor.R, this._config.PeakColor.G, this._config.PeakColor.B); // 'red';
+        
         this._blackPixel = 'black';
         this._tblMatrixId = 'tblMatrix';
         this._colPeaks = [];
-        this._transitionSpeed = 2;
-        this._peakWait = 500;
-        this._peakWaitCountDown = 20;
-        this._showPeaks = true;
-        this._pixelWid = this._winWid / (this._cols * 2);
-        this._pixelHgt =  (1 / this._rows) * 250;
+        this._transitionSpeed = this._config.TransitionSpeed;
+        this._peakWait = this._config.PeakWait;
+        this._peakWaitCountDown = this._config.PeakWaitCountDown;
+        this._showPeaks = this._config.ShowPeaks;
+        
+        this._pixelWid = this._winWid / (this._config.Cols * 2);
+        this._pixelHgt =  (1 / this._config.Rows) * 250;
 
-        for (let i = 0; i < this._cols; i++) {
+        this.populatePixelColors();
+
+        for (let i = 0; i < this._config.Cols; i++) {
             this._curLevels.push(0);
             this._colPeaks.push({ col: i, row: 0, curWait: 0, curTime: 0, prevTime: 0  });
         }
 
         this.buildMatrix();
-        this.setupDefaultColors();
+
+        console.log(this._pixelColors);
     }
 
     //property setters
@@ -57,7 +61,7 @@ class WebDisplay{
     }
 
     displayLevels(targetLevels){
-        for (let x = 0; x < this._cols; x++) {
+        for (let x = 0; x < this._config.Cols; x++) {
             if(targetLevels[x].Level > this._curLevels[x])
             {
                 this._curLevels[x] = targetLevels[x].Level;                    
@@ -65,11 +69,11 @@ class WebDisplay{
                 this._curLevels[x] = Math.max(this._curLevels[x] - this._transitionSpeed, targetLevels[x].Level);  //bring down gradually
             }
             
-            for (let y = 0; y < this._rows; y++)
+            for (let y = 0; y < this._config.Rows; y++)
             {
                 let color = '';                                            
                 if(y < this._curLevels[x] ){
-                    color =  this._pixelColors[x, y]; 
+                    color =  this._pixelColors[x][y]; 
                 }else{
                     color = this._blackPixel;                        
                 }     
@@ -90,7 +94,7 @@ class WebDisplay{
     }
 
     setPeaks(col, value){
-        let topRowIndex = this._rows - 1;
+        let topRowIndex = this._config.Rows - 1;
 
         if(value > this._colPeaks[col].row)  //set new peaks if current value is greater than previously stored peak.
         {
@@ -150,13 +154,12 @@ class WebDisplay{
     buildMatrix(){        
         let matrixHtml = `<table id="${this._tblMatrixId}">`;
 
-        for (let y = this._rows-1; y >= 0; y--) {  
-            let hue = this._helpers.map(y, 0, this._rows, 100, 0);
-            let color =  `hsl(${hue}, 100%, 50%)`;  
+        for (let y = this._config.Rows-1; y >= 0; y--) {  
+            // let hue = this._helpers.map(y, 0, this._config.Rows, 100, 0);
+            // let color =  `hsl(${hue}, 100%, 50%)`;  
             matrixHtml += '<tr>';
-            for (let x = 0; x < this._cols; x++) {
-                this._pixelColors[x, y] = color;
-
+            for (let x = 0; x < this._config.Cols; x++) {
+                // this._config.PixelColors[x][y] = color;
                 matrixHtml += `<td data-px-x="${x}" data-px-y="${y}"  
                 style="min-width:${this._pixelWid}px; 
                 min-height:${this._pixelHgt}px; 
@@ -174,7 +177,7 @@ class WebDisplay{
 
         //display bands
         matrixHtml += '<tr>';
-        for (let x = 0; x < this._cols; x++) {
+        for (let x = 0; x < this._config.Cols; x++) {
             matrixHtml += `<td data-band-x="${x}">${x}</td>`;
         }
         matrixHtml += '</tr>';
@@ -184,15 +187,18 @@ class WebDisplay{
         $(this._parentElement).html(matrixHtml);
     }
 
-    setupDefaultColors()
+    populatePixelColors()
     {
-        for (let x = 0; x < this._cols; x++)
+        for (let x = 0; x < this._config.Cols; x++)
         {
-            for (let y = 0; y < this._rows; y++)
+            let columnPixels = [];
+            for (let y = 0; y < this._config.Rows; y++)
             {
-                let hueIndex = this._helpers.map(y, 0, this._rows-1, 100, 0); //map row numbers to the color range green to red
-                this._pixelColors[x, y] =  `hsl(${hueIndex}, 100%, 50%)`;
+                let color = this._config.PixelColors[x][y]; 
+                columnPixels.push(this._helpers.rgbToHexString(color.R, color.G, color.B));
             }            
+
+            this._pixelColors.push(columnPixels);
         }
     }
 }
