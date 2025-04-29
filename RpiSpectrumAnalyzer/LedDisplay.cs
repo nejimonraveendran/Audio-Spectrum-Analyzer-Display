@@ -8,10 +8,7 @@ class LedDisplay : DisplayBase
 {   
     private Ws2812b _ledMatrix;
     private double[] _curLevels;
-    private PixelColor[][]? _pixelColors; 
     private ColPeak[] _colPeaks;
-    private PixelColor _peakColor;
-
     private int _brightnessMin;
     private int _brightness;
     private int _brightnessMax;
@@ -40,7 +37,7 @@ class LedDisplay : DisplayBase
         _brightness = 2; //default, configurable via API call
         _brightnessMax = 50;
 
-        _peakColor = ColorHelper.ToLedColor(new PixelColor{R = 255, G = 0, B = 0}, _brightness);  //default, configurable via API call
+        _peakColor = new PixelColor{R = 255, G = 0, B = 0};  //default, configurable via API call
         
         var spiSettings =  new SpiConnectionSettings(0, 0)
         {
@@ -86,9 +83,11 @@ class LedDisplay : DisplayBase
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
+            PeakColor = _peakColor,
+            PixelColors = _pixelColors
 
-            PeakColor = ColorHelper.FromLedColor(_peakColor, _brightness),
-            PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.FromLedColor(p, _brightness)).ToArray()).ToArray(), //convert to array of arrays
+            // PeakColor = ColorHelper.PixelColorWithoutBrightness(_peakColor, _brightness),
+            // PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.PixelColorWithoutBrightness(p, _brightness)).ToArray()).ToArray(), //convert to array of arrays
 
         };
     }
@@ -102,8 +101,11 @@ class LedDisplay : DisplayBase
         _amplificationFactor = config?.AmplificationFactor > 0 ? config.AmplificationFactor : _amplificationFactor;
         _showPeaks = config?.ShowPeaks == null ? false : config.ShowPeaks;
         _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
-        _peakColor = config?.PeakColor != null ? ColorHelper.ToLedColor(config.PeakColor, _brightness) : _peakColor;
-        _pixelColors = config?.PixelColors != null ? config.PixelColors.Select(c => c.Select(p => ColorHelper.ToLedColor(p, _brightness)).ToArray())?.ToArray() : _pixelColors;
+        _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
+        _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
+
+        // _peakColor = config?.PeakColor != null ? ColorHelper.PixelColorWithBrightness(config.PeakColor, _brightness) : _peakColor;
+        // _pixelColors = config?.PixelColors != null ? config.PixelColors.Select(c => c.Select(p => ColorHelper.PixelColorWithBrightness(p, _brightness)).ToArray())?.ToArray() : _pixelColors;
         
     }
 
@@ -140,8 +142,8 @@ class LedDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    var clr = _pixelColors[x][y];
-                    _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(clr.R, clr.G, clr.B)); //_ledMatrix.Image.SetPixel(y, x, _pixelColors[x,y]); //x, y reversed because of the LED strip wiring in my case
+                    var pixelColor = ColorHelper.PixelColorWithBrightness(_pixelColors[x][y], _brightness);
+                    _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B)); //_ledMatrix.Image.SetPixel(y, x, _pixelColors[x,y]); //x, y reversed because of the LED strip wiring in my case
                 }else{
                     _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(0, 0, 0));
                 }         
@@ -160,13 +162,15 @@ class LedDisplay : DisplayBase
     private void SetupDefaultColors()
     {
         //green to orange gradient
-        var fromColor = ColorHelper.ToLedColor(new PixelColor{R = 100, G = 255, B = 0}, _brightness);
-        var toColor = ColorHelper.ToLedColor(new PixelColor{R = 255, G = 100, B = 0}, _brightness);        
+        // var fromColor = ColorHelper.PixelColorWithBrightness(new PixelColor{R = 100, G = 255, B = 0}, _brightness);
+        // var toColor = ColorHelper.PixelColorWithBrightness(new PixelColor{R = 255, G = 100, B = 0}, _brightness);        
+        var fromColor = new PixelColor{R = 100, G = 255, B = 0};
+        var toColor = new PixelColor{R = 255, G = 100, B = 0};        
         var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
 
         for (int x = 0; x < _cols; x++)
         {
-            _pixelColors[x] = new PixelColor[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+            _pixelColors[x] = new PixelColor[_rows]; 
             for (int y = 0; y < _rows; y++)
             {
                 _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
@@ -200,7 +204,8 @@ class LedDisplay : DisplayBase
 
         if(_colPeaks[col].Row >= targetPeakRow) //if value (x) not at bottom, set peak color of the row
         {
-            _ledMatrix.Image.SetPixel(_colPeaks[col].Row, col, Color.FromArgb(_peakColor.R, _peakColor.G, _peakColor.B)); //x, y reversed because of the LED strip wiring in my case
+            var peakColor = ColorHelper.PixelColorWithBrightness(_peakColor, _brightness);
+            _ledMatrix.Image.SetPixel(_colPeaks[col].Row, col, Color.FromArgb(peakColor.R, peakColor.G, peakColor.B)); //x, y reversed because of the LED strip wiring in my case
         }
         else //otherwise set to black. 
         { 

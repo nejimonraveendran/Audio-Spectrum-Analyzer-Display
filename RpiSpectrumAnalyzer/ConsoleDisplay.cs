@@ -4,25 +4,6 @@ namespace RpiSpectrumAnalyzer;
 
 class ConsoleDisplay : DisplayBase
 {
-
-    // private ConsoleColor[] _consoleHues = 
-    // {
-    //     ConsoleColor.DarkRed,  
-    //     ConsoleColor.Red, 
-    //     ConsoleColor.DarkYellow, 
-    //     ConsoleColor.Yellow, 
-    //     ConsoleColor.Green, 
-    //     ConsoleColor.DarkGreen,
-    //     ConsoleColor.Cyan,
-    //     ConsoleColor.DarkCyan,
-    //     ConsoleColor.Blue,
-    //     ConsoleColor.DarkBlue,
-    //     ConsoleColor.Magenta,
-    //     ConsoleColor.DarkMagenta
-    // };
-
-    private ConsoleColor _peakColor;
-    private ConsoleColor[][]? _pixelColors; //private ConsoleColor[,]? _pixelColors;
     private ColPeak[] _colPeaks;
     private double[] _curLevels;
     
@@ -31,7 +12,7 @@ class ConsoleDisplay : DisplayBase
         _rows = rows;
         _cols = cols;
         _curLevels = new double[_cols];
-        _pixelColors = new ConsoleColor[_cols][]; //new ConsoleColor[_cols, _rows];
+        _pixelColors = new PixelColor[_cols][]; //new ConsoleColor[_cols, _rows];
         _colPeaks = new ColPeak[_cols];
         
         _peakWaitMin = 1;
@@ -46,15 +27,13 @@ class ConsoleDisplay : DisplayBase
         _transitionSpeed = 1; //default, configurable via API call
         _transitionSpeedMax = _rows/2;
 
-        _peakColor = ConsoleColor.DarkRed; //default, configurable via API call
+        _peakColor = ColorHelper.ConsoleColorToPixelColor(ConsoleColor.DarkRed); //dark red, default, configurable via API call
         
         Clear();
         SetupDefaultColors();
 
     }
 
-    // public override int Rows => _rows;
-    // public override int Cols => _cols;
 
     public override DisplayConfiguration GetConfiguration()
     {
@@ -78,29 +57,22 @@ class ConsoleDisplay : DisplayBase
             ShowPeaks = _showPeaks,
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
-            
-            PeakColor = ColorHelper.ConsoleColorToPixelColor(_peakColor),
-            PixelColors = _pixelColors?.Select(c => c.Select(p => ColorHelper.ConsoleColorToPixelColor(p)).ToArray()).ToArray(), //convert to array of arrays
+            PeakColor = _peakColor,
+            PixelColors = _pixelColors 
             
         };
     }
 
     public override void UpdateConfiguration(DisplayConfiguration? config)
     {
-        // if(config?.DisplayType != DisplayType.CONSOLE)
-        //     return;
-        
-        // var consoleDisplayConfig = config as ConsoleDisplayConfiguration;
-        // if (consoleDisplayConfig == null)
-        //     return;
-
-        // _peakWait = consoleDisplayConfig.PeakWait > 0 ? consoleDisplayConfig.PeakWait : _peakWait;
-        // _peakWaitCountDown = consoleDisplayConfig.PeakWaitCountDown > 0 ? consoleDisplayConfig.PeakWaitCountDown : _peakWaitCountDown;
-        // _transitionSpeed = consoleDisplayConfig.TransitionSpeed > 0 ? consoleDisplayConfig.TransitionSpeed : _transitionSpeed;
-        // _amplificationFactor = consoleDisplayConfig.AmplificationFactor > 0 ? consoleDisplayConfig.AmplificationFactor : _amplificationFactor;
-        // _showPeaks = consoleDisplayConfig.ShowPeaks;
-        // _showPeaksWhenSilent = consoleDisplayConfig.ShowPeaksWhenSilent;
-
+        _peakWait = config?.PeakWait > 0 ? config.PeakWait : _peakWait;
+        _peakWaitCountDown = config?.PeakWaitCountDown > 0 ? config.PeakWaitCountDown : _peakWaitCountDown;
+        _transitionSpeed = config?.TransitionSpeed > 0 ? config.TransitionSpeed : _transitionSpeed;
+        _amplificationFactor = config?.AmplificationFactor > 0 ? config.AmplificationFactor : _amplificationFactor;
+        _showPeaks = config?.ShowPeaks == null ? false : config.ShowPeaks;
+        _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
+        _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
+        _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
     }
 
 
@@ -144,7 +116,7 @@ class ConsoleDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    Console.ForegroundColor = _pixelColors[x][y]; //_pixelColors[x, y];
+                    Console.ForegroundColor = ColorHelper.PixelColorToConsoleColor(_pixelColors[x][y]); //_pixelColors[x, y];
                 }else{
                     Console.ForegroundColor = ConsoleColor.Black;
                 }         
@@ -158,7 +130,7 @@ class ConsoleDisplay : DisplayBase
                     }
 
                     if(y == peakRow && peakRow >= targetPeakRow){ //to turn off peaks at the bottom when there is silence, change this to peakRow > 0
-                        Console.ForegroundColor = _peakColor;
+                        Console.ForegroundColor = ColorHelper.PixelColorToConsoleColor(_peakColor);
                     }
                 }
    
@@ -183,19 +155,6 @@ class ConsoleDisplay : DisplayBase
         Console.Write(label);
     }
 
-
-    private void SetupDefaultColors()
-    {
-        for (int x = 0; x < _cols; x++)
-        {
-            _pixelColors[x] = new ConsoleColor[_rows]; //_pixelColors[x, y] = new ConsoleColor[_rows];
-            for (int y = 0; y < _rows; y++)
-            {
-                int hueIndex = y.Map(0, _rows-1, 5, 0); //map row numbers to the color range green to red
-                _pixelColors[x][y] = ColorHelper.ConsoleHues[hueIndex]; //_pixelColors[x, y] =  _consoleHues[hueIndex];
-            }            
-        }
-    }
 
     private int GetPeakRow(int col, int value)
     {
@@ -245,6 +204,23 @@ class ConsoleDisplay : DisplayBase
 
         return peakRow;
 
+    }
+
+
+    private void SetupDefaultColors()
+    {
+        var fromColor = new PixelColor{R = 0, G = 255, B = 0};
+        var toColor = new PixelColor{R = 128, G = 0, B = 0};   
+        var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
+        
+        for (int x = 0; x < _cols; x++)
+        {
+            _pixelColors[x] = new PixelColor[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+            for (int y = 0; y < _rows; y++)
+            {
+                _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
+            }            
+        }
     }
 
 }

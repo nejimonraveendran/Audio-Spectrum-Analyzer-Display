@@ -90,10 +90,10 @@ class DisplayConfiguration
     public bool ShowPeaks { get; set; }
     public bool ShowPeaksWhenSilent { get; set; }
     public bool IsBrightnessSupported { get; set; }
-    public PixelColor PeakColor { get; set; }
+    public PixelColor? PeakColor { get; set; }
     public PixelColor[][]? PixelColors { get; set; } 
-    public PixelColor GradientBottomColor { get; set; }
-    public PixelColor GradientTopColor { get; set; }
+    public PixelColor? GradientBottomColor { get; set; }
+    public PixelColor? GradientTopColor { get; set; }
     
 }
 
@@ -164,11 +164,6 @@ class PixelColor
     
 }
 
-// class Dummy
-// {
-//     public Color PeakColor { get; set; }
-// }
-
 class ColorHelper
 {
 
@@ -206,32 +201,42 @@ class ColorHelper
     public ConsoleColor ConsoleColor { get; set; }
     public string? HtmlColor { get; set; }
     
-
-
-    private static ColorHelper[] _consoleColors = 
+    private static (ConsoleColor ConsoleColor, PixelColor PixelColor) [] _consoleHueMap = 
     {
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkRed, RgbColor = Color.DarkRed, HtmlColor = "#8B0000"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Red, RgbColor = Color.Red, HtmlColor = "#FF0000"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkYellow, RgbColor = Color.Orange, HtmlColor = "#FFA500"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Yellow, RgbColor = Color.Yellow, HtmlColor = "#FFFF00"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Green, RgbColor = Color.Green, HtmlColor = "#00FF00"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkGreen, RgbColor = Color.DarkGreen, HtmlColor = "#006400"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Cyan, RgbColor = Color.Cyan, HtmlColor = "#00FFFF"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkCyan, RgbColor = Color.DarkCyan, HtmlColor = "#008B8B"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Blue, RgbColor = Color.Blue, HtmlColor = "#0000FF"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkBlue, RgbColor = Color.DarkBlue, HtmlColor = "#00008B"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.Magenta, RgbColor = Color.Magenta, HtmlColor = "#FF00FF"},
-        new ColorHelper{ ConsoleColor = ConsoleColor.DarkMagenta, RgbColor = Color.DarkMagenta, HtmlColor = "#8B008B"},
-    };
+        (ConsoleColor.DarkRed, new PixelColor{ R = 128, G = 0, B = 0 }),
+        (ConsoleColor.Red, new PixelColor{ R = 255, G = 0, B = 0 }),
+        (ConsoleColor.DarkYellow, new PixelColor{ R = 128, G = 128, B = 0 }),
+        (ConsoleColor.Yellow, new PixelColor{ R = 255, G = 255, B = 0 }),
+        (ConsoleColor.Green, new PixelColor{ R = 0, G = 255, B = 0 }),
+        (ConsoleColor.DarkGreen, new PixelColor{ R = 0, G = 128, B = 0 }),
+        (ConsoleColor.Cyan, new PixelColor{ R = 0, G = 255, B = 255 }),
+        (ConsoleColor.DarkCyan, new PixelColor{ R = 0, G = 128, B = 128 }),
+        (ConsoleColor.Blue, new PixelColor{ R = 0, G = 0, B = 255 }),
+        (ConsoleColor.DarkBlue, new PixelColor{ R = 0, G = 0, B = 128 }),
+        (ConsoleColor.Magenta, new PixelColor{ R = 255, G = 0, B = 255 }),
+        (ConsoleColor.DarkMagenta, new PixelColor{ R = 128, G = 0, B = 128 }),
 
+    };
 
     public static PixelColor ConsoleColorToPixelColor(ConsoleColor consoleColor)
     {
-        var color = _consoleColors.FirstOrDefault(c => c.ConsoleColor == consoleColor);
-        return color == null ? new PixelColor{ R = 0, G = 0, B = 0} : new PixelColor{ R = color.RgbColor.R, G = color.RgbColor.G, B = color.RgbColor.B}; 
+        return _consoleHueMap.First(c => c.ConsoleColor == consoleColor).PixelColor;
     }
 
-    public static PixelColor FromLedColor(PixelColor color, double brightness)
+    public static ConsoleColor PixelColorToConsoleColor (PixelColor color)
+    {
+        var hsl = PixelColorToHsl(color);
+
+        if(hsl.L > 0.75)
+            return ConsoleColor.White;
+
+        var max = _consoleHueMap.Length - 1;
+        var mappedValue = hsl.H.Map(0, 300, 0, max);
+        mappedValue = mappedValue > max ? max : mappedValue;
+        return _consoleHueMap[mappedValue].ConsoleColor;
+    }
+
+    public static PixelColor PixelColorWithoutBrightness(PixelColor color, double brightness)
     {
         var r = (int) (color.R  *  100/brightness); 
         var g = (int) (color.G *  100/brightness); 
@@ -239,7 +244,7 @@ class ColorHelper
         return new PixelColor{ R = r, G = g, B = b}; 
     }
 
-    public static PixelColor ToLedColor(PixelColor color, double brightness)
+    public static PixelColor PixelColorWithBrightness(PixelColor color, double brightness)
     {
         var r = (int) (color.R  *  brightness/100); 
         var g = (int) (color.G *  brightness/100); 
@@ -248,31 +253,11 @@ class ColorHelper
     }
 
 
-    public static ColorHelper ToConsoleColor(Color color)
-    {
-        var hue = ColorToHue(color);
-        var mappedValue = hue.Map(0, 360, 0, _consoleColors.Length);
-        Console.WriteLine(hue.ToString() + " = " + mappedValue.ToString());
-        return _consoleColors[mappedValue];
-    }
-
-
-    public static ConsoleColor[] ConsoleHues => _consoleColors.Select(c => c.ConsoleColor).ToArray(); 
-        
-    
-    // public static Color[] GenerateGradient(Color startColor, Color endColor, int gradientCount)
+    // public static ConsoleColor[] ConsoleHues => _consoleColors.Select(c => c.ConsoleColor).ToArray(); 
+            
+    // public static ConsoleColor[] GenerateGradient(int startIndex, int gradientCount)
     // {
-    //     Color[] gradient = new Color[gradientCount];
-    //     for (int i = 0; i < gradientCount; i++)
-    //     {
-    //         double ratio = (double)i / (gradientCount - 1);
-    //         int r = (int)(startColor.R + (endColor.R - startColor.R) * ratio);
-    //         int g = (int)(startColor.G + (endColor.G - startColor.G) * ratio);
-    //         int b = (int)(startColor.B + (endColor.B - startColor.B) * ratio);
-    //         gradient[i] = Color.FromArgb(r, g, b);
-    //     }
-
-    //     return gradient;
+    //     return _consoleHues.Skip(startIndex).Take(gradientCount).Select(c => c.ConsoleColor).ToArray();
     // }
 
     public static PixelColor[] GenerateGradient(PixelColor startColor, PixelColor endColor, int gradientCount)
@@ -290,45 +275,76 @@ class ColorHelper
         return gradient;
     }
 
-
-    private static int ColorToHue(Color color)
+    private static (int H, double S, double L) PixelColorToHsl(PixelColor pixelColor)
     {
-        double rf = color.R / 255.0;
-        double gf = color.G / 255.0;
-        double bf = color.B / 255.0;
+        double rNorm = pixelColor.R / 255.0;
+        double gNorm = pixelColor.G / 255.0;
+        double bNorm = pixelColor.B / 255.0;
 
-        double max = Math.Max(rf, Math.Max(gf, bf));
-        double min = Math.Min(rf, Math.Min(gf, bf));
+        double max = Math.Max(rNorm, Math.Max(gNorm, bNorm));
+        double min = Math.Min(rNorm, Math.Min(gNorm, bNorm));
         double delta = max - min;
 
-        double hue = 0;
+        double h = 0;
+        double s = 0;
+        double l = (max + min) / 2.0;
 
-        if (delta == 0)
+        if (delta != 0)
         {
-            hue = 0; // When max equals min
-        }
-        else if (max == rf)
-        {
-            hue = ((gf - bf) / delta) % 6;
-        }
-        else if (max == gf)
-        {
-            hue = ((bf - rf) / delta) + 2;
-        }
-        else if (max == bf)
-        {
-            hue = ((rf - gf) / delta) + 4;
-        }
+            s = l < 0.5 ? delta / (max + min) : delta / (2.0 - max - min);
 
-        hue *= 60;
+            if (max == rNorm)
+                h = ((gNorm - bNorm) / delta) + (gNorm < bNorm ? 6 : 0);
+            else if (max == gNorm)
+                h = ((bNorm - rNorm) / delta) + 2;
+            else
+                h = ((rNorm - gNorm) / delta) + 4;
 
-        if (hue < 0)
-        {
-            hue += 360;
+            h /= 6.0;
         }
 
-        return (int) hue;
+        return ((int) (h * 360.0), s, l);
     }
+
+
+    // private static int ColorToHue(PixelColor pixelColor)
+    // {
+    //     double rf = pixelColor.R / 255.0;
+    //     double gf = pixelColor.G / 255.0;
+    //     double bf = pixelColor.B / 255.0;
+
+    //     double max = Math.Max(rf, Math.Max(gf, bf));
+    //     double min = Math.Min(rf, Math.Min(gf, bf));
+    //     double delta = max - min;
+
+    //     double hue = 0;
+
+    //     if (delta == 0)
+    //     {
+    //         hue = 0; // When max equals min
+    //     }
+    //     else if (max == rf)
+    //     {
+    //         hue = ((gf - bf) / delta) % 6;
+    //     }
+    //     else if (max == gf)
+    //     {
+    //         hue = ((bf - rf) / delta) + 2;
+    //     }
+    //     else if (max == bf)
+    //     {
+    //         hue = ((rf - gf) / delta) + 4;
+    //     }
+
+    //     hue *= 60;
+
+    //     if (hue < 0)
+    //     {
+    //         hue += 360;
+    //     }
+
+    //     return (int) hue;
+    // }
 
 
 

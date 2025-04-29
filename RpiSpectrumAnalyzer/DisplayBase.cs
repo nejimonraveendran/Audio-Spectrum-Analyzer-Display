@@ -22,6 +22,10 @@ abstract class DisplayBase
     
     protected bool _showPeaks = true; //default, configurable via API call
     protected bool _showPeaksWhenSilent = true; //default, configurable via API call
+
+    protected PixelColor[][]? _pixelColors; 
+    protected PixelColor? _peakColor;
+
     // public abstract int Rows { get; }
     // public abstract int Cols { get; }
     public abstract void Clear();

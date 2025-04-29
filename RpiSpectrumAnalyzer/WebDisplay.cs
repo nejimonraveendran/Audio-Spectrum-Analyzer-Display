@@ -7,9 +7,6 @@ using System.Text.Json;
 
 class WebDisplay : DisplayBase
 {
-    private PixelColor[][]? _pixelColors; //private Color[,]? _pixelColors;
-    private PixelColor _peakColor;
-
     public WebDisplay(int rows, int cols)
     {
         _rows = rows;
