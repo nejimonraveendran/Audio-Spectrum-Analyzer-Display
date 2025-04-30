@@ -48,7 +48,7 @@ class DisplayConfig  {
     loadConfig() {
         this._httpClient.get(this._configUrl)
             .then((config) => {
-                console.log(config);
+                // console.log(config);
                 
                 this._config = config;
                 this._rows = config.Rows;
@@ -88,7 +88,9 @@ class DisplayConfig  {
     saveConfig(newConfig) {
         this._httpClient.post(this._configUrl, newConfig)
             .then((result) => {
-                console.log(result);
+                if(result.DisplayType == DISPLAY_TYPE.WEB){
+                    window.location = "/";  //redirect to home page after config udpate
+                }
             })
             .catch((error) => {
                 console.error('Error updating configuration:', error);
@@ -109,6 +111,7 @@ class DisplayConfig  {
         $(`#${this._gradientTopId}`).on('change', this.setGradient.bind(this));
         $(`#${this._gradientBottomId}`).on('change', this.setGradient.bind(this));
         $(`#${this._btnDeployId}`).on('click', this.deploy.bind(this));
+        this.saveConfig.bind(this);
         
                         
     }

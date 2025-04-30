@@ -235,7 +235,7 @@ class LedServer
 
         var display = DisplayClients.FirstOrDefault(d => d.GetConfiguration()?.DisplayType == displayTypeEnum);
         display?.UpdateConfiguration(config);
-        await SendResult(context, new {Result = 0});
+        await SendResult(context, new {DisplayType = displayType});
 
         // switch(displayTypeEnum)
         // {

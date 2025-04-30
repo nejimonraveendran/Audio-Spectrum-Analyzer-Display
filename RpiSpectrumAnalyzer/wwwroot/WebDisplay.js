@@ -108,6 +108,8 @@ class WebDisplay{
 
         }
 
+        // console.log(this._config.ShowPeaksWhenSilent);
+
         //set peaks
         let targetPeakRow = 1;
         if(this._config.ShowPeaksWhenSilent){
@@ -115,7 +117,7 @@ class WebDisplay{
         }
 
         let color = '';       
-        if(this._colPeaks[col].row > targetPeakRow) //if value (x) not at bottom, set peak color of the row
+        if(this._colPeaks[col].row >= targetPeakRow) //if value (x) not at bottom, set peak color of the row
         {
             color = this._peakColor;
         }

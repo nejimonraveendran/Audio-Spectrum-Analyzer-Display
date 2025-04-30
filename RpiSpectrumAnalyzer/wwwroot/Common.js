@@ -1,8 +1,8 @@
-const _baseUrl = '10.0.0.16:8090';
+const _host = window.location.hostname + ':' + window.location.port;
 
 const URL = {
-    socketServer: `ws://${_baseUrl}/ws`,
-    apiServer: `http://${_baseUrl}/api/config`,
+    socketServer: `ws://${_host}/ws`,
+    apiServer: `http://${_host}/api/config`,
 }
 
 
