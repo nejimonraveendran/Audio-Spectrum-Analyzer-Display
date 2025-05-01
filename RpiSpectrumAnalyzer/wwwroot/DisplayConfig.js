@@ -34,22 +34,17 @@ class DisplayConfig  {
         this._sldBrightnessId = 'sldBrightness';
         this._chkShowPeakId = 'chkShowPeakId';
         this._chkShowPeaksWhenSilent = 'chkShowPeaksWhenSilent';
-        
         this._blackPixel = 'black'; 
         this._pixelWid = this._winWid / (this._cols * 2);
         this._pixelHgt =  this._pixelWid;
-        this._html = '';    
         this._gradient = [];   
         this._configUrl = URL.apiServer + '?displayType=' + this._displayType; 
-
-        // this.buildConfigUi();
+        this._html = '';    
     }
 
     loadConfig() {
         this._httpClient.get(this._configUrl)
-            .then((config) => {
-                // console.log(config);
-                
+            .then((config) => {                
                 this._config = config;
                 this._rows = config.Rows;
                 this._cols = config.Cols;
@@ -71,11 +66,10 @@ class DisplayConfig  {
                 this._showPeaks = config.ShowPeaks;
                 this._showPeaksWhenSilent = config.ShowPeaksWhenSilent;
                 this._isBrightnessSupported = config.IsBrightnessSupported;
-                this._peakColor = this._helpers.rgbToHexString(config.PeakColor.R, config.PeakColor.G, config.PeakColor.B); //'#010000';// `#${config.PeakColor.Name}`;
+                this._peakColor = this._helpers.rgbToHexString(config.PeakColor.R, config.PeakColor.G, config.PeakColor.B); 
                 this._pixelColors = config.PixelColors;
                 this._gradientStartColor = config.GradientStartColor;
                 this._gradientEndColor = config.GradientEndColor;
-                
                 this._pixelWid = this._winWid / (this._cols * 2);
                 this._pixelHgt =  this._pixelWid;
                 
@@ -100,6 +94,7 @@ class DisplayConfig  {
     }
 
     buildConfigUi(){
+        //build ui controls dynamically
         this._html = `<div id="configContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px;">`;
         this._html = this.buildSliders();
         this._html = this.buildToggles();
@@ -108,16 +103,17 @@ class DisplayConfig  {
         this._html = this.buildDeployButton();
         this._html += `</div>`;
 
-        $(this._parentElement).html(this._html);
+        //add to dom
+        $(this._parentElement).html(this._html); 
 
+        //bind events
         $(`#${this._gradientTopId}`).on('change', this.setGradient.bind(this));
         $(`#${this._gradientBottomId}`).on('change', this.setGradient.bind(this));
         $(`#${this._btnDeployId}`).on('click', this.deploy.bind(this));
-        this.saveConfig.bind(this);
-        
-                        
+        this.saveConfig.bind(this);                   
     }
 
+    //deploy function - called by deploy button
     deploy(){
         let payload = {};
 
@@ -157,8 +153,10 @@ class DisplayConfig  {
         let gradientEndColor = this._helpers.hexStringToRgbJson($(`#${this._gradientTopId}`).val());
         payload.GradientEndColor = {R: gradientEndColor.r, G: gradientEndColor.g, B: gradientEndColor.b};
         
+        //send to server
         this.saveConfig(payload);
     }
+
 
     setGradient() {
         let topColor = $(`#${this._gradientTopId}`).val();
@@ -245,7 +243,6 @@ class DisplayConfig  {
                 this._html += `</td>`;
             }
 
-
             //build pixels
             for (let x = 0; x < this._cols; x++) {
                 let color = this._pixelColors[x][y];
@@ -275,6 +272,7 @@ class DisplayConfig  {
         return this._html;
     }
 
+    //fired by deploy button
     buildDeployButton(){
         this._html += `<div id="deployButtonContainer" style="width: 100%; display: flex; flex-direction: row; justify-content: center; margin-top: 20px;">`;
         this._html += `<button id="${this._btnDeployId}" style="width:200px;height:100px;background-color:lightblue;cursor:pointer;font-weight:bolder;" onmouseover="this.style.backgroundColor='rgb(68, 127, 235)'" onmouseout="this.style.backgroundColor='lightblue'">Deploy</button>`;

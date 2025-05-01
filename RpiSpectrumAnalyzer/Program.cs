@@ -19,9 +19,9 @@ namespace RpiSpectrumAnalyzer;
 //core_freq=250
 //core_freq_min=250
 
-
 class Program
 {
+    //default values for the params - can be changed through arguments
     private static string _ledServerUrl = "http://0.0.0.0:8090";
     private static int[] _bands = {100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000}; //audio frequencies (Hz) to analyze
     private static int _consoleDisplayLevels = 16; //default number of levels

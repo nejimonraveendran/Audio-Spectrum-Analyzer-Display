@@ -5,11 +5,15 @@ const URL = {
     apiServer: `http://${_host}/api/config`,
 }
 
-
 const DISPLAY_TYPE = {
     LED: 1,
     CONSOLE: 2,
     WEB: 3
 };
 
+const DISPLAY_EVENT = {
+    DISPLAY: 2,
+    CONFIG_CHANGED: 3,
+    CLEAR: 4
+};
 

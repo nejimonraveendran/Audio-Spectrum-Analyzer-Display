@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace RpiSpectrumAnalyzer;
 
 class ConsoleDisplay : DisplayBase
@@ -12,7 +10,7 @@ class ConsoleDisplay : DisplayBase
         _rows = rows;
         _cols = cols;
         _curLevels = new double[_cols];
-        _pixelColors = new PixelColor[_cols][]; //new ConsoleColor[_cols, _rows];
+        _pixelColors = new PixelColor[_cols][]; 
         _colPeaks = new ColPeak[_cols];
         
         _peakWaitMin = 1;
@@ -27,7 +25,7 @@ class ConsoleDisplay : DisplayBase
         _transitionSpeed = 1; //default, configurable via API call
         _transitionSpeedMax = _rows/2;
 
-        _peakColor = ColorHelper.ConsoleColorToPixelColor(ConsoleColor.DarkRed); //dark red, default, configurable via API call
+        _peakColor = ColorConversion.ConsoleColorToPixelColor(ConsoleColor.DarkRed); //dark red, default, configurable via API call
 
         _gradientStartColor = new PixelColor{R = 0, G = 255, B = 0};
         _gradientEndColor = new PixelColor{R = 128, G = 0, B = 0};   
@@ -123,7 +121,7 @@ class ConsoleDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    Console.ForegroundColor = ColorHelper.PixelColorToConsoleColor(_pixelColors[x][y]); //_pixelColors[x, y];
+                    Console.ForegroundColor = ColorConversion.PixelColorToConsoleColor(_pixelColors[x][y]); //_pixelColors[x, y];
                 }else{
                     Console.ForegroundColor = ConsoleColor.Black;
                 }         
@@ -137,7 +135,7 @@ class ConsoleDisplay : DisplayBase
                     }
 
                     if(y == peakRow && peakRow >= targetPeakRow){ //to turn off peaks at the bottom when there is silence, change this to peakRow > 0
-                        Console.ForegroundColor = ColorHelper.PixelColorToConsoleColor(_peakColor);
+                        Console.ForegroundColor = ColorConversion.PixelColorToConsoleColor(_peakColor);
                     }
                 }
    
@@ -216,9 +214,7 @@ class ConsoleDisplay : DisplayBase
 
     private void SetupDefaultColors()
     {
-        // var fromColor = new PixelColor{R = 0, G = 255, B = 0};
-        // var toColor = new PixelColor{R = 128, G = 0, B = 0};   
-        var gradient = ColorHelper.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
+        var gradient = ColorConversion.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
         
         for (int x = 0; x < _cols; x++)
         {

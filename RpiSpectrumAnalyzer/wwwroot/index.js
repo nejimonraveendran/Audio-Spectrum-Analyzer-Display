@@ -1,13 +1,6 @@
 let _webDisplay;
 let _socketClient;
 
-const DISPLAY_EVENT ={
-    DISPLAY: 2,
-    CONFIG_CHANGED: 3,
-    CLEAR: 4
-};
-
-
 $(document).ready(() => {
     _socketClient = new SocketClient(URL.socketServer, onSocketConnect, onSocketDisConnect, onSocketMessage);            
     _socketClient.connect();

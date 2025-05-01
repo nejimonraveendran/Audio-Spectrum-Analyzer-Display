@@ -13,10 +13,6 @@ class WebDisplay{
         this._blackPixel = 'black';
         this._tblMatrixId = 'tblMatrix';
         this._colPeaks = [];
-        this._transitionSpeed = this._config.TransitionSpeed;
-        this._peakWait = this._config.PeakWait;
-        this._peakWaitCountDown = this._config.PeakWaitCountDown;
-        this._showPeaks = this._config.ShowPeaks;
         
         this._pixelWid = this._winWid / (this._config.Cols * 2);
         this._pixelHgt =  (1 / this._config.Rows) * 250;
@@ -31,27 +27,6 @@ class WebDisplay{
         this.buildMatrix();
     }
 
-    //property setters
-    setPeakColor(color){
-        this._peakColor = color;
-    }
-
-    setTransitionSpeed(speed){
-        this._transitionSpeed = speed;
-    }
-
-    setShowPeaks(show){
-        this._showPeaks = show;
-    }
-
-    setPkeakWait(wait){
-        this._peakWait = wait;
-    }
-    
-    setPeakWaitCountDown(countDown){
-        this._peakWaitCountDown = countDown;
-    }
-
     clear(){
         let allPixels = $(`#${this._tblMatrixId} tr td`); 
         if(allPixels === null || allPixels === undefined) return;
@@ -64,7 +39,7 @@ class WebDisplay{
             {
                 this._curLevels[x] = targetLevels[x].Level;                    
             }else if (targetLevels[x].Level < this._curLevels[x]){
-                this._curLevels[x] = Math.max(this._curLevels[x] - this._transitionSpeed, targetLevels[x].Level);  //bring down gradually
+                this._curLevels[x] = Math.max(this._curLevels[x] - this._config.TransitionSpeed, targetLevels[x].Level);  //bring down gradually
             }
             
             for (let y = 0; y < this._config.Rows; y++)
@@ -84,7 +59,7 @@ class WebDisplay{
             bandInfo.html(targetLevels[x].Band >= 1000 ? (targetLevels[x].Band/1000) + 'KHz' :  targetLevels[x].Band + 'Hz' );
 
 
-            if(this._showPeaks){
+            if(this._config.ShowPeaks){
                 this.setPeaks(x, this._curLevels[x]);
             }
 
@@ -104,11 +79,9 @@ class WebDisplay{
             }
 
             this._colPeaks[col].curTime = this._colPeaks[col].prevTime = Date.now();
-            this._colPeaks[col].curWait = this._peakWait;
+            this._colPeaks[col].curWait = this._config.PeakWait;
 
         }
-
-        // console.log(this._config.ShowPeaksWhenSilent);
 
         //set peaks
         let targetPeakRow = 1;
@@ -144,12 +117,12 @@ class WebDisplay{
 
         }
 
-        this._colPeaks[col].curWait -=  this._peakWaitCountDown;
+        this._colPeaks[col].curWait -=  this._config.PeakWaitCountDown;
 
 
-        if(this._colPeaks[col].curWait < this._peakWaitCountDown)
+        if(this._colPeaks[col].curWait < this._config.PeakWaitCountDown)
         {
-            this._colPeaks[col].curWait = this._peakWaitCountDown;
+            this._colPeaks[col].curWait = this._config.PeakWaitCountDown;
             
         }
 
@@ -160,11 +133,8 @@ class WebDisplay{
         let matrixHtml = `<table id="${this._tblMatrixId}">`;
 
         for (let y = this._config.Rows-1; y >= 0; y--) {  
-            // let hue = this._helpers.map(y, 0, this._config.Rows, 100, 0);
-            // let color =  `hsl(${hue}, 100%, 50%)`;  
             matrixHtml += '<tr>';
             for (let x = 0; x < this._config.Cols; x++) {
-                // this._config.PixelColors[x][y] = color;
                 matrixHtml += `<td data-px-x="${x}" data-px-y="${y}"  
                 style="min-width:${this._pixelWid}px; 
                 min-height:${this._pixelHgt}px; 

@@ -1,8 +1,8 @@
+namespace RpiSpectrumAnalyzer;
+
 using System.Device.Spi;
 using System.Drawing;
 using Iot.Device.Ws28xx;
-
-namespace RpiSpectrumAnalyzer;
 
 class LedDisplay : DisplayBase
 {   
@@ -105,7 +105,6 @@ class LedDisplay : DisplayBase
         _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
         _gradientStartColor = config?.GradientStartColor != null ? config.GradientStartColor : _gradientStartColor;
         _gradientEndColor = config?.GradientEndColor != null ? config.GradientEndColor : _gradientEndColor;
-
         
     }
 
@@ -122,7 +121,6 @@ class LedDisplay : DisplayBase
                         .ToLevels(_rows);
 
         DisplayLevels(levels);
-
     }
 
     private void DisplayLevels(LevelInfo[] targetLevels)
@@ -138,11 +136,10 @@ class LedDisplay : DisplayBase
                 _curLevels[x] = Math.Max(_curLevels[x] - _transitionSpeed, targetLevels[x].Level);  //bring down gradually
             }
 
-        
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    var pixelColor = ColorHelper.PixelColorWithBrightness(_pixelColors[x][y], _brightness);
+                    var pixelColor = ColorConversion.PixelColorWithBrightness(_pixelColors[x][y], _brightness);
                     _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B)); //x, y reversed because of the bottom-to-top LED strip wiring in my case
                 }else{
                       _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(0, 0, 0));
@@ -161,10 +158,7 @@ class LedDisplay : DisplayBase
 
     private void SetupDefaultColors()
     {
-        //green to orange gradient
-        // var fromColor = new PixelColor{R = 100, G = 255, B = 0};
-        // var toColor = new PixelColor{R = 255, G = 100, B = 0};        
-        var gradient = ColorHelper.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
+        var gradient = ColorConversion.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
 
         for (int x = 0; x < _cols; x++)
         {
@@ -201,7 +195,7 @@ class LedDisplay : DisplayBase
 
         if(_colPeaks[col].Row >= targetPeakRow) //if value (x) not at bottom, set peak color of the row
         {
-            var peakColor = ColorHelper.PixelColorWithBrightness(_peakColor, _brightness);
+            var peakColor = ColorConversion.PixelColorWithBrightness(_peakColor, _brightness);
             _ledMatrix.Image.SetPixel(_colPeaks[col].Row, col, Color.FromArgb(peakColor.R, peakColor.G, peakColor.B)); //x, y reversed because of the LED strip wiring in my case
         }
         else //otherwise set to black. 
@@ -224,7 +218,6 @@ class LedDisplay : DisplayBase
         }
 
         _colPeaks[col].CurWait -=  _peakWaitCountDown;
-
 
         if(_colPeaks[col].CurWait < _peakWaitCountDown)
         {

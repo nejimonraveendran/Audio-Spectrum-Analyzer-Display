@@ -1,6 +1,5 @@
 namespace RpiSpectrumAnalyzer;
 
-using System.Drawing;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -11,8 +10,8 @@ class WebDisplay : DisplayBase
     {
         _rows = rows;
         _cols = cols;
-        _pixelColors = new PixelColor[_cols][]; //_pixelColors = new Color[_cols, _rows];
-        _peakColor = new PixelColor{R = 255, G = 0, B = 0}; // Color.FromArgb(255, 0, 0);//  Helpers.HsvToColor(0, 1, 1);  //default, configurable via API call
+        _pixelColors = new PixelColor[_cols][]; 
+        _peakColor = new PixelColor{R = 255, G = 0, B = 0};  //default, configurable via API call
 
         _transitionSpeedMin = 1;
         _transitionSpeed = 2; //default, configurable via API call
@@ -136,33 +135,16 @@ class WebDisplay : DisplayBase
         
     }
 
-    // private void SetupDefaultColors()
-    // {
-    //     for (int x = 0; x < _cols; x++)
-    //     {
-    //         _pixelColors[x] = new Color[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
-    //         for (int y = 0; y < _rows; y++)
-    //         {
-    //             double hue = Helpers.Map(y, 0, _rows, 120, 1); //map row numbers to the hue range green (120) to red (1)
-    //             _pixelColors[x][y] = Helpers.HsvToColor(hue, 1, 1); //1 = full saturation, 
-    //             //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
-    //         }            
-    //     }
-    // }
-
     private void SetupDefaultColors()
     {
-        // var fromColor = new PixelColor{R = 100, G = 255, B = 0};
-        // var toColor = new PixelColor{R = 255, G = 100, B = 0};   
-        var gradient = ColorHelper.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
+        var gradient = ColorConversion.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
         
         for (int x = 0; x < _cols; x++)
         {
-            _pixelColors[x] = new PixelColor[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+            _pixelColors[x] = new PixelColor[_rows]; 
             for (int y = 0; y < _rows; y++)
             {
                 _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
-                //_pixelColors[x, y] = Helpers.HsvToColor(hue, 1, _brightness); //1 = full saturation, 
             }            
         }
     }

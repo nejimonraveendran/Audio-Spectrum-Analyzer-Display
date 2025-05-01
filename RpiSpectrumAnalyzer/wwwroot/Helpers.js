@@ -3,7 +3,6 @@ class Helpers{
         return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
     }
     
-    
     hexStringToRgbJson(hex) {
         // Convert HEX to RGB
         const bigint = parseInt(hex.slice(1), 16);
