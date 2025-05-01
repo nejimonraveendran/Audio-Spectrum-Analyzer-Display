@@ -38,6 +38,9 @@ class LedDisplay : DisplayBase
         _brightnessMax = 50;
 
         _peakColor = new PixelColor{R = 255, G = 0, B = 0};  //default, configurable via API call
+
+        _gradientStartColor = new PixelColor{R = 100, G = 255, B = 0};
+        _gradientEndColor = new PixelColor{R = 255, G = 100, B = 0};        
         
         var spiSettings =  new SpiConnectionSettings(0, 0)
         {
@@ -82,7 +85,9 @@ class LedDisplay : DisplayBase
             ShowPeaksWhenSilent = _showPeaksWhenSilent,
             IsBrightnessSupported = IsBrightnessSupported,
             PeakColor = _peakColor,
-            PixelColors = _pixelColors
+            PixelColors = _pixelColors,
+            GradientStartColor = _gradientStartColor,
+            GradientEndColor = _gradientEndColor
 
         };
     }
@@ -98,6 +103,9 @@ class LedDisplay : DisplayBase
         _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
         _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
         _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
+        _gradientStartColor = config?.GradientStartColor != null ? config.GradientStartColor : _gradientStartColor;
+        _gradientEndColor = config?.GradientEndColor != null ? config.GradientEndColor : _gradientEndColor;
+
         
     }
 
@@ -154,9 +162,9 @@ class LedDisplay : DisplayBase
     private void SetupDefaultColors()
     {
         //green to orange gradient
-        var fromColor = new PixelColor{R = 100, G = 255, B = 0};
-        var toColor = new PixelColor{R = 255, G = 100, B = 0};        
-        var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
+        // var fromColor = new PixelColor{R = 100, G = 255, B = 0};
+        // var toColor = new PixelColor{R = 255, G = 100, B = 0};        
+        var gradient = ColorHelper.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
 
         for (int x = 0; x < _cols; x++)
         {

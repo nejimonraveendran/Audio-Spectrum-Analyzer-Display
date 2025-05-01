@@ -28,6 +28,9 @@ class WebDisplay : DisplayBase
 
         SocketClients = [];
 
+        _gradientStartColor = new PixelColor{R = 100, G = 255, B = 0};
+        _gradientEndColor = new PixelColor{R = 255, G = 100, B = 0};   
+
         SetupDefaultColors();
     }
 
@@ -68,6 +71,8 @@ class WebDisplay : DisplayBase
             IsBrightnessSupported = IsBrightnessSupported,
             PeakColor = _peakColor,
             PixelColors = _pixelColors,
+            GradientStartColor = _gradientStartColor,
+            GradientEndColor = _gradientEndColor
         };
 
     }
@@ -82,6 +87,8 @@ class WebDisplay : DisplayBase
         _showPeaksWhenSilent = config?.ShowPeaksWhenSilent == null ? false : config.ShowPeaksWhenSilent;
         _peakColor = config?.PeakColor != null ? config.PeakColor : _peakColor;
         _pixelColors = config?.PixelColors != null ? config.PixelColors : _pixelColors;
+        _gradientStartColor = config?.GradientStartColor != null ? config.GradientStartColor : _gradientStartColor;
+        _gradientEndColor = config?.GradientEndColor != null ? config.GradientEndColor : _gradientEndColor;
 
         var payload = JsonSerializer.Serialize(new WebDisplayData{ Event = WebDisplayEvent.CONFIG_CHANGED, Data = new {Config = this.GetConfiguration()}});
         SendToClients(payload);
@@ -145,9 +152,9 @@ class WebDisplay : DisplayBase
 
     private void SetupDefaultColors()
     {
-        var fromColor = new PixelColor{R = 100, G = 255, B = 0};
-        var toColor = new PixelColor{R = 255, G = 100, B = 0};   
-        var gradient = ColorHelper.GenerateGradient(fromColor, toColor, _rows); 
+        // var fromColor = new PixelColor{R = 100, G = 255, B = 0};
+        // var toColor = new PixelColor{R = 255, G = 100, B = 0};   
+        var gradient = ColorHelper.GenerateGradient(_gradientStartColor, _gradientEndColor, _rows); 
         
         for (int x = 0; x < _cols; x++)
         {

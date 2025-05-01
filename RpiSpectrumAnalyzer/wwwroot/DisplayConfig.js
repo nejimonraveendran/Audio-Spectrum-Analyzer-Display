@@ -73,6 +73,8 @@ class DisplayConfig  {
                 this._isBrightnessSupported = config.IsBrightnessSupported;
                 this._peakColor = this._helpers.rgbToHexString(config.PeakColor.R, config.PeakColor.G, config.PeakColor.B); //'#010000';// `#${config.PeakColor.Name}`;
                 this._pixelColors = config.PixelColors;
+                this._gradientStartColor = config.GradientStartColor;
+                this._gradientEndColor = config.GradientEndColor;
                 
                 this._pixelWid = this._winWid / (this._cols * 2);
                 this._pixelHgt =  this._pixelWid;
@@ -119,22 +121,22 @@ class DisplayConfig  {
     deploy(){
         let payload = {};
 
-        //set slider values
+        //get slider values
         payload.PeakWait = parseInt($(`#${this._sldPeakWaitId}`).val());
         payload.Brightness = parseInt($(`#${this._sldBrightnessId}`).val());
         payload.TransitionSpeed = parseInt($(`#${this._sldTransitionSpeedId}`).val());
         payload.PeakWaitCountDown = parseInt($(`#${this._sldPeakFalldownId}`).val());
         payload.AmplificationFactor = parseInt($(`#${this._sldAmplificationId}`).val());
 
-        //set checkbox values
+        //get checkbox values
         payload.ShowPeaks = $(`#${this._chkShowPeakId}`).is(':checked');
         payload.ShowPeaksWhenSilent = $(`#${this._chkShowPeaksWhenSilent}`).is(':checked');
 
-        //set peak color
+        //get peak color
         let peakPixelColor = this._helpers.hexStringToRgbJson($(`#${this._peakColorId}`).val());
         payload.PeakColor = {R: peakPixelColor.r, G: peakPixelColor.g, B: peakPixelColor.b};
         
-        //set pixels
+        //get pixels
         let pixelColors = [];
         for (let x = 0; x < this._cols; x++) {
             let columnPixels = [];
@@ -147,6 +149,14 @@ class DisplayConfig  {
         }
         payload.PixelColors = pixelColors;
 
+        //get gradient value (start)
+        let gradientStartColor = this._helpers.hexStringToRgbJson($(`#${this._gradientBottomId}`).val());
+        payload.GradientStartColor = {R: gradientStartColor.r, G: gradientStartColor.g, B: gradientStartColor.b};
+        
+        //get gradient value (end)
+        let gradientEndColor = this._helpers.hexStringToRgbJson($(`#${this._gradientTopId}`).val());
+        payload.GradientEndColor = {R: gradientEndColor.r, G: gradientEndColor.g, B: gradientEndColor.b};
+        
         this.saveConfig(payload);
     }
 
@@ -220,6 +230,9 @@ class DisplayConfig  {
         this._html += `<table id="${this._tblMatrixId}">`;
         this._html += `<tbody>`;
 
+        let gradientStartColorHexString = this._helpers.rgbToHexString(this._gradientStartColor.R, this._gradientStartColor.G, this._gradientStartColor.B);
+        let gradientEndColorHexString = this._helpers.rgbToHexString(this._gradientEndColor.R, this._gradientEndColor.G, this._gradientEndColor.B);
+        
         for (let y = this._rows-1; y >= 0; y--) {  
             this._html += '<tr>';
             
@@ -227,8 +240,8 @@ class DisplayConfig  {
             if (y == this._rows-1) { 
                 this._html += `<td rowspan="${this._rows}">`;
                 this._html += `<p><i class="fa-solid fa-fill-drip"></i></p>`;
-                this._html += `<div><input id="${this._gradientTopId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
-                this._html += `<div><input id="${this._gradientBottomId}" type="color" value="#ffffff" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
+                this._html += `<div><input id="${this._gradientTopId}" type="color" value="${gradientEndColorHexString}" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
+                this._html += `<div><input id="${this._gradientBottomId}" type="color" value="${gradientStartColorHexString}" style="height:${gradientPickerHeight}px; width:30px;cursor:pointer;"/></div>`;
                 this._html += `</td>`;
             }
 
