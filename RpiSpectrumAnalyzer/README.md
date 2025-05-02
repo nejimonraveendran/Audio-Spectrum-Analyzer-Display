@@ -57,11 +57,36 @@ If you are connecting your phone, the above command will list Pi as a paired/con
 **Note:** From this point on, you can also use any regular method you use to connect other devices, e.g., by tapping the device name (your pi's hostname) on the phone. 
 
 ## Project Dependencies
+### ALSA APIs
 This project uses under ALSA (Advanced Linux Sound Architecture) APIs via the C# library [Alsa.Net](https://www.nuget.org/packages/Alsa.Net).  Alsa.Net depends on libasound2-dev package, so we need to make sure that we have installed it via the command:
 ```
 sudo apt install libasound2-dev
 ```
 
 Also note that this project depends on the Nuget package [FftSharp](https://www.nuget.org/packages/FftSharp) for FFT calculations.
+
+### .NET 8
+This project was built on .NET 8, so we need to install .NET for ARM 64 bit
+```
+sudo apt update
+wget https://dotnetcli.azureedge.net/dotnet/Sdk/8.0.100/dotnet-sdk-8.0.100-linux-arm64.tar.gz
+sudo mkdir -p /usr/share/dotnet
+sudo tar -xvf dotnet-sdk-8.0.100-linux-*.tar.gz -C /usr/share/dotnet
+echo 'export DOTNET_ROOT=/usr/share/dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:/usr/share/dotnet' >> ~/.bashrc
+rm dotnet-sdk-8.0.100-linux-arm64.tar.gz
+source ~/.bashrc
+```
+Verify the installation by using the command:
+```
+dotnet --version
+```
+
+## Downloading and running the project
+First of all, clone this repo to a local path on Raspberry Pi
+
+```
+
+```
 
 
