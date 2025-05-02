@@ -95,6 +95,13 @@ core_freq_min=250
 spidev.bufsiz=65536
 ```
 
+## Restart
+After the above steps are complete, you MUST restart the Pi so that the SPI settings take effect upon next boot
+
+```
+sudo reboot now
+```
+
 ## Downloading and running the project
 First of all, clone this repo to a local path on Raspberry Pi and build the project
 
