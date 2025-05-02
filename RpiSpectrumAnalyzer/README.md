@@ -106,7 +106,7 @@ dotnet build
 
 To run the application, first go to the output directory:
 ```
-cd /bin/Debug/net8.0 $ 
+cd /bin/Debug/net8.0 
 ```
 
 Then run the application:
