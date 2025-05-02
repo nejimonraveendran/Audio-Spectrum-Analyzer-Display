@@ -10,7 +10,7 @@ I usually use Raspberry Pi OS Lite on my Pis. By default, Pi does not have have 
 
 ```
 sudo apt update
-sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth 
+sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y 
 sudo systemctl restart bluetooth
 bluetoothctl power on
 bluetoothctl discoverable on
@@ -39,6 +39,9 @@ The above command will start listing the Bluetooth devices around.  Look for the
 bluetoothctl pair <mac_address>
 bluetoothctl trust <mac_address>
 ```
+
+Note (if you are using Raspberry Pi Desktop OS):  You can pair the device using the GUI via desktop.  If you are connecting your phone, your Raspberry Pi's hostname will be showing up on your phone under the the available bluetooth devices.  You can directly pair from there as well. 
+
 To view already paired/connected devices, you can use:
 ```
 bluetoothctl devices Paired
@@ -56,7 +59,7 @@ If you are connecting your phone, the above command will list Pi as a paired/con
 ## Project Dependencies
 This project uses under ALSA (Advanced Linux Sound Architecture) APIs via the C# library [Alsa.Net](https://www.nuget.org/packages/Alsa.Net).  Alsa.Net depends on libasound2-dev package, so we need to make sure that we have installed it via the command:
 ```
-sudo apt-get install libasound2-dev
+sudo apt install libasound2-dev
 ```
 
 Also note that this project depends on the Nuget package [FftSharp](https://www.nuget.org/packages/FftSharp) for FFT calculations.
