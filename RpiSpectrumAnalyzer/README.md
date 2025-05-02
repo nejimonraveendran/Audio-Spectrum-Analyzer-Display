@@ -82,6 +82,19 @@ Verify the installation by using the command:
 dotnet --version
 ```
 
+### Raspberry Pi SPI configuration
+**Enable SPI protocol (for RGB LED panel):**  Open /boot/firmware/config.txt in a text Editor, add the following lines at the end of the file
+```
+dtparam=spi=on
+core_freq=250
+core_freq_min=250
+```
+
+**Set SPI buffer size:**  Open /boot/firmware/cmdline.txt in a text Editor, insert a space and add the following at the end of the file
+```
+spidev.bufsiz=65536
+```
+
 ## Downloading and running the project
 First of all, clone this repo to a local path on Raspberry Pi and build the project
 
