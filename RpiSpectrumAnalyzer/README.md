@@ -83,10 +83,43 @@ dotnet --version
 ```
 
 ## Downloading and running the project
-First of all, clone this repo to a local path on Raspberry Pi
+First of all, clone this repo to a local path on Raspberry Pi and build the project
 
 ```
+clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
+cd Audio-Spectrum-Analyzer-Display/RpiSpectrumAnalyzer
+dotnet build
+```
+
+To run the application, first go to the output directory:
+```
+cd /bin/Debug/net8.0 $ 
+```
+
+Then run the application:
 
 ```
+./RpiSpectrumAnalyzer
+```
+
+By default, this will run the application on port 8090.  If you are using Rasperry Pi Os Desktop, you access the application's web interface through the browser at the address:
+
+```
+http://localhost:8090
+```
+
+If you want to access from other devices on the same network, use your Raspberry Pi's hostname or LAN IP address.  For example:
+
+```
+http://raspberrypi.local:8090
+```
+
+
+
+
+
+
+
+
 
 
