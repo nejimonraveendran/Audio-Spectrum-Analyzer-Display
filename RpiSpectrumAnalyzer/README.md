@@ -98,6 +98,8 @@ If you want to pair a new Bluetooth audio device such as your phone, first you n
 
 First of all, turn on Bluetooth scanning:
 ```
+bluetoothctl power on
+bluetoothctl discoverable on
 bluetoothctl scan on
 ```
 The above command will start listing the Bluetooth devices around.  Look for the name of the device you want to pair with and note down the MAC address of the device once it is found in the list.  Pair the device using the following commands:
