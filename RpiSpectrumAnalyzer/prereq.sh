@@ -30,4 +30,4 @@ rm dotnet-sdk-8.0.100-linux-arm64.tar.*
 git clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
 cd Audio-Spectrum-Analyzer-Display/RpiSpectrumAnalyzer
 dotnet build
-cd /bin/Debug/net8.0
+cd bin/Debug/net8.0
