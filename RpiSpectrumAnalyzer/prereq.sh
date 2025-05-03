@@ -1,4 +1,3 @@
-
 sudo apt update
 
 #install git
@@ -34,6 +33,3 @@ clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
 cd Audio-Spectrum-Analyzer-Display/RpiSpectrumAnalyzer
 dotnet build
 cd /bin/Debug/net8.0
-
-
-bluetoothctl scan on
