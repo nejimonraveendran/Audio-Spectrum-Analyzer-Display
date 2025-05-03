@@ -11,8 +11,6 @@ sudo apt install wget
 #PulseAudio server should be running in order to be able to connect devices via Bluetooth.  Devices will disconnet if you exit PulseAudio Server
 sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y 
 sudo systemctl restart bluetooth
-bluetoothctl power on
-bluetoothctl discoverable on
 pulseaudio --start
 pulseaudio --check; echo $?
 
@@ -29,7 +27,7 @@ source ~/.bashrc
 rm dotnet-sdk-8.0.100-linux-arm64.tar.gz
 
 #clone this code repo
-clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
+git clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
 cd Audio-Spectrum-Analyzer-Display/RpiSpectrumAnalyzer
 dotnet build
 cd /bin/Debug/net8.0
