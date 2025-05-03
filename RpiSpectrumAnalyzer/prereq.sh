@@ -24,7 +24,7 @@ sudo tar -xvf dotnet-sdk-8.0.100-linux-*.tar.gz -C /usr/share/dotnet
 echo 'export DOTNET_ROOT=/usr/share/dotnet' >> ~/.bashrc
 echo 'export PATH=$PATH:/usr/share/dotnet' >> ~/.bashrc
 source ~/.bashrc
-rm dotnet-sdk-8.0.100-linux-arm64.tar.gz
+rm dotnet-sdk-8.0.100-linux-arm64.tar.*
 
 #clone this code repo
 git clone https://github.com/nejimonraveendran/Audio-Spectrum-Analyzer-Display.git
