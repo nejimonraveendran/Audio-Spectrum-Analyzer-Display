@@ -51,10 +51,13 @@ class Program
         }
         catch (Exception ex) 
         {
-            ShowError("Error during setting up LED Didplay. Please make sure SPI settings are correctly configured. To disable LED Display, use --disable-led-display command line option.", ex);                    
+            ShowError("Error during setting up LED Didplay. Please make sure SPI settings are correctly configured. To disable LED Display, use --disable-led-display command line option.", ex);      
+            PrepareForExit(displays, cts);
+            return;              
         }
 
-         if(_webDisplayEnabled)
+
+        if(_webDisplayEnabled)
             displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));
 
         if(_consoleDisplayEnabled)
@@ -82,10 +85,7 @@ class Program
             availableConsoleDisplay.Info = $"Server running at {_ledServerUrl}. Press any key to exit.";
         
 
-        Console.Read();
-        cts.Cancel();
-        Thread.Sleep(100);
-        displays.ForEach(display => display.Clear());
+        PrepareForExit(displays, cts);
 
 
         
@@ -157,9 +157,12 @@ class Program
 
     }
 
-    private static void PrepareForExit()
+    private static void PrepareForExit(List<DisplayBase> displays, CancellationTokenSource cts)
     {
-        
+        Console.Read();
+        cts.Cancel();
+        Thread.Sleep(100);
+        displays.ForEach(display => display.Clear());   
     }
 
     private static void ShowError(string message, Exception exception)

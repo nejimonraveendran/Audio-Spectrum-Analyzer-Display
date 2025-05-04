@@ -31,7 +31,7 @@ class ConsoleDisplay : DisplayBase
         _gradientStartColor = new PixelColor{R = 0, G = 255, B = 0};
         _gradientEndColor = new PixelColor{R = 128, G = 0, B = 0};   
 
-        // Clear();
+        Clear();
         SetupDefaultColors();
 
     }
@@ -84,8 +84,8 @@ class ConsoleDisplay : DisplayBase
 
     public override void Clear()
     {
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.ForegroundColor = ConsoleColor.Black;
+        // Console.BackgroundColor = ConsoleColor.Black;
+        // Console.ForegroundColor = ConsoleColor.Black;
         Console.Clear();
         
     }
@@ -165,7 +165,7 @@ class ConsoleDisplay : DisplayBase
 
     private void DisplayInfo(){
         Console.ForegroundColor = ConsoleColor.White;
-        Console.SetCursorPosition(0,  _lastRow+1); 
+        Console.SetCursorPosition(0,  _lastRow+2); 
         Console.Write(Info);
     }
 
