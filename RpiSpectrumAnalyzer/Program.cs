@@ -6,6 +6,7 @@ namespace RpiSpectrumAnalyzer;
 
 //Author: Nejimon Raveendran
 //PROJECT DEPENDENCIES:
+//sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y 
 //sudo apt-get install libasound2-dev
 //dotnet add package Alsa.Net --version 1.0.8
 //dotnet add package FftSharp --version 2.2.0
@@ -56,14 +57,20 @@ class Program
             return;              
         }
 
-
-        if(_webDisplayEnabled)
-            displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));
-
         if(_consoleDisplayEnabled)
-            displays.Add(new ConsoleDisplay(_consoleDisplayLevels, _bands.Length));                    
+        {
+            var consoleDisplay = new ConsoleDisplay(_consoleDisplayLevels, _bands.Length);
+            consoleDisplay.Info = $"Server running at {_ledServerUrl}. Press any key to exit.";
+            displays.Add(consoleDisplay);
+        }
+
+        
+        if(_webDisplayEnabled)
+            displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));                                
 
         ledServer.DisplayClients.AddRange(displays);
+        ledServer.Start(cts);
+
 
         //start capturing system audio (executed on a different threat)
         AudioCapture.StartCapture(result =>{
@@ -77,83 +84,8 @@ class Program
 
         }, sampleRate, cts);
 
-        ledServer.Start(cts);
 
-        var availableConsoleDisplay = ledServer.DisplayClients.FirstOrDefault(d => d.GetType().Equals(typeof(ConsoleDisplay))) as ConsoleDisplay;
-        
-        if(availableConsoleDisplay != null)
-            availableConsoleDisplay.Info = $"Server running at {_ledServerUrl}. Press any key to exit.";
-        
-
-        PrepareForExit(displays, cts);
-
-
-        
-        // try
-        // {        
-
-            // //press any key to terminate:
-            // var keyPressListenerTask = Task.Run(() => 
-            // {
-            //     var availableConsoleDisplay = ledServer.DisplayClients.FirstOrDefault(d => d.GetType().Equals(typeof(ConsoleDisplay))) as ConsoleDisplay;
-                
-            //     if(availableConsoleDisplay != null)
-            //         availableConsoleDisplay.Info = "Press any key to exit.";
-                
-            //     Console.Read();
-            //     cts.Cancel();
-
-            //     availableConsoleDisplay.Info = "Cancelled.";
-
-            //     // Thread.Sleep(100);
-            //     // displays.ForEach(display => display.Clear());
-
-            // }, cts.Token);
-
-            // var availableConsoleDisplay = ledServer.DisplayClients.FirstOrDefault(d => d.GetType().Equals(typeof(ConsoleDisplay))) as ConsoleDisplay;
-            
-            // if(availableConsoleDisplay != null)
-            //     availableConsoleDisplay.Info = "Press any key to exit.";
-        
-            
-            // Task.WhenAny(ledServerTask, keyPressListenerTask).Wait();
-
-            // Console.ForegroundColor = ConsoleColor.White;
-            // Console.WriteLine("exited");
-            // // Console.WriteLine(exception?.ToString());
-            
-            // Thread.Sleep(100);
-            // displays.ForEach(display => display.Clear());
-
-         
-            // await captureTask.ContinueWith((r)=> 
-            // {
-            //     Console.ForegroundColor = ConsoleColor.Red;
-            //     if(r.Exception != null)
-            //     {
-            //         Console.WriteLine(r.Exception.ToString());
-            //     }
-                
-            // });
-
-
-            // await ledServerTask.ContinueWith((r)=> 
-            // {
-            //     Console.ForegroundColor = ConsoleColor.Red;
-            //     if(r.Exception != null)
-            //     {
-            //         Console.WriteLine(r.Exception.ToString());
-            //     }
-                
-            // });
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.ForegroundColor = ConsoleColor.Red;
-        //     Console.WriteLine("Unexpected error: " + Environment.NewLine + ex.Message); 
-        // }
-
-    
+        PrepareForExit(displays, cts);    
 
     }
 
