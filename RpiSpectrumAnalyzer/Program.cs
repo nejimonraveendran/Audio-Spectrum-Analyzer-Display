@@ -21,6 +21,7 @@ namespace RpiSpectrumAnalyzer;
 
 class Program
 {
+
     //default values for the params - can be changed through arguments
     private static string _ledServerUrl = "http://0.0.0.0:8090";
     private static int[] _bands = {100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000}; //audio frequencies (Hz) to analyze
@@ -32,46 +33,117 @@ class Program
     private static bool _webDisplayEnabled = true;
     
     
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         if (!SetConfigFromArgs(args)) return;
 
-        const int sampleRate = 44100; //sampling frequency in Hz
+        try
+        {
+            const int sampleRate = 44100; //sampling frequency in Hz
 
-        var ledServer = new LedServer(_ledServerUrl);
-        var analyzer = new Analyzer(new AnalyzerParams{ Bands = _bands, SampleRate = sampleRate });
+            var ledServer = new LedServer(_ledServerUrl);
+            var analyzer = new Analyzer(new AnalyzerParams{ Bands = _bands, SampleRate = sampleRate });
+            // var consoleDisplay = new ConsoleDisplay(_consoleDisplayLevels, _bands.Length);
 
-        var displays = new List<DisplayBase>();
+            var displays = new List<DisplayBase>();
+            // displays.Add(consoleDisplay);
 
-        if(_consoleDisplayEnabled)
-            displays.Add(new ConsoleDisplay(_consoleDisplayLevels, _bands.Length));
-        
-        if(_ledDisplayEnabled)
-            displays.Add(new LedDisplay(_ledDisplayLevels, _bands.Length));
+            if(_webDisplayEnabled)
+                displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));
 
-        if(_webDisplayEnabled)
-            displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));
+            if(_consoleDisplayEnabled)
+                displays.Add(new ConsoleDisplay(_consoleDisplayLevels, _bands.Length));            
 
-        ledServer.DisplayClients.AddRange(displays);
+            if(_ledDisplayEnabled)
+                displays.Add(new LedDisplay(_ledDisplayLevels, _bands.Length));
 
-        var cts = new CancellationTokenSource();
+            ledServer.DisplayClients.AddRange(displays);
 
-        //start capturing system audio (executed on a different threat)
-        AudioCapture.StartCapture((buffer) =>{            
-            var bands = analyzer.ConvertToFrequencyBands(buffer);
-            displays.ForEach(display => display.DisplayAsLevels(bands));
+            var cts = new CancellationTokenSource();
 
-        }, sampleRate, cts);
+            //start capturing system audio (executed on a different threat)
+            AudioCapture.StartCapture(result =>{
+                if(result.Exception != null){
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error during audio capture: {result.Exception}");
+                    return;
+                }
 
+                var bands = analyzer.ConvertToFrequencyBands(result.Buffer);
+                displays.ForEach(display => display.DisplayAsLevels(bands));
 
-        ledServer.Start();
+            }, sampleRate, cts);
+                
 
-        //press any key to terminate:
-        Console.Read();
-        cts.Cancel();
-        Thread.Sleep(100);
-        displays.ForEach(display => display.Clear());
            
+            var ledServerTask = ledServer.StartAsync(cts);
+
+            //press any key to terminate:
+            var keyPressListenerTask = Task.Run(() => 
+            {
+                var availableConsoleDisplay = ledServer.DisplayClients.FirstOrDefault(d => d.GetType().Equals(typeof(ConsoleDisplay))) as ConsoleDisplay;
+                
+                if(availableConsoleDisplay != null)
+                    availableConsoleDisplay.Info = "Press any key to exit.";
+                
+                Console.Read();
+                cts.Cancel();
+
+                availableConsoleDisplay.Info = "Cancelled.";
+
+                // Thread.Sleep(100);
+                // displays.ForEach(display => display.Clear());
+
+            }, cts.Token);
+
+            // var availableConsoleDisplay = ledServer.DisplayClients.FirstOrDefault(d => d.GetType().Equals(typeof(ConsoleDisplay))) as ConsoleDisplay;
+            
+            // if(availableConsoleDisplay != null)
+            //     availableConsoleDisplay.Info = "Press any key to exit.";
+            
+            // Console.Read();
+            // cts.Cancel();
+            // Thread.Sleep(100);
+            // displays.ForEach(display => display.Clear());
+
+            
+            Task.WhenAny(ledServerTask, keyPressListenerTask).Wait();
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("exited");
+            // Console.WriteLine(exception?.ToString());
+            
+            Thread.Sleep(100);
+            displays.ForEach(display => display.Clear());
+
+         
+            // await captureTask.ContinueWith((r)=> 
+            // {
+            //     Console.ForegroundColor = ConsoleColor.Red;
+            //     if(r.Exception != null)
+            //     {
+            //         Console.WriteLine(r.Exception.ToString());
+            //     }
+                
+            // });
+
+
+            // await ledServerTask.ContinueWith((r)=> 
+            // {
+            //     Console.ForegroundColor = ConsoleColor.Red;
+            //     if(r.Exception != null)
+            //     {
+            //         Console.WriteLine(r.Exception.ToString());
+            //     }
+                
+            // });
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Unexpected error: " + Environment.NewLine + ex.Message); 
+        }
     }
 
 

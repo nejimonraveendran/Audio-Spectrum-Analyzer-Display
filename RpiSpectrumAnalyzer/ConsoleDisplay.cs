@@ -4,6 +4,7 @@ class ConsoleDisplay : DisplayBase
 {
     private ColPeak[] _colPeaks;
     private double[] _curLevels;
+    private int _lastRow = 0;
     
     public ConsoleDisplay(int rows, int cols)
     {
@@ -30,7 +31,7 @@ class ConsoleDisplay : DisplayBase
         _gradientStartColor = new PixelColor{R = 0, G = 255, B = 0};
         _gradientEndColor = new PixelColor{R = 128, G = 0, B = 0};   
 
-        Clear();
+        // Clear();
         SetupDefaultColors();
 
     }
@@ -106,7 +107,8 @@ class ConsoleDisplay : DisplayBase
         for (int x = 0; x < targetLevels.Length; x++)
         {
             int xPos = x * levelChars.Length * 2; //space columns
-            DisplayLabels(xPos, _rows+1, targetLevels[x].Band);
+            _lastRow = _rows+1;
+            DisplayLabels(xPos, _lastRow, targetLevels[x].Band);
 
             if(targetLevels[x].Level > _curLevels[x])
             {
@@ -143,8 +145,9 @@ class ConsoleDisplay : DisplayBase
                 Console.SetCursorPosition(xPos,  _rows - y); 
                 Console.Write(levelChars);
             }            
-
         }
+
+        DisplayInfo();
     }
 
 
@@ -154,12 +157,20 @@ class ConsoleDisplay : DisplayBase
 
         string label = value.ToString();
         if(value >= 1000){
-            label = $"{Convert.ToInt32(value / 1000)}K"; 
+            var freq = Math.Round(Convert.ToDecimal(value/1000), 1);
+            label = $"{freq}K"; 
         }
 
-        Console.Write(label);
+        Console.Write(label); 
     }
 
+    private void DisplayInfo(){
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.SetCursorPosition(0,  _lastRow+1); 
+        Console.Write(Info);
+    }
+
+    public string Info { get; set; }
 
     private int GetPeakRow(int col, int value)
     {

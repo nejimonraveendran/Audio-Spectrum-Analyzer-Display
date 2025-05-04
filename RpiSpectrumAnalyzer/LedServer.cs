@@ -28,68 +28,65 @@ class LedServer
         
     }
 
-    public void Start()
+    public Task StartAsync(CancellationTokenSource cts)
     {
-        Task.Factory.StartNew(() => 
+        var host = Host.CreateDefaultBuilder()
+        .ConfigureWebHostDefaults(webBuilder => 
         {
-            var host = Host.CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(webBuilder => 
-            {
 
-                webBuilder.UseUrls(_url);
-                
-                webBuilder.Configure(app => 
-                {
-                    app.UseDefaultFiles();
-                    app.UseStaticFiles(new StaticFileOptions 
-                    {
-                        DefaultContentType = "text/html",
-                        FileProvider  = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
-                    });
-
-                    //websocket with 1 min keepalive ping-pong
-                    app.UseWebSockets(new WebSocketOptions{ KeepAliveInterval = TimeSpan.FromMinutes(1)});
-
-                  
-                    app.UseRouter(routes => 
-                    {
-                        routes.MapGet("/api/config", async context => 
-                        {
-                            await HandleGetConfig(context);
-                        });
-
-                        routes.MapPost("/api/config", async context => 
-                        {
-                            await HandleUpdateConfig(context);
-                        });
-
-                        routes.MapRoute("/ws", async context => 
-                        {
-                            await HandleWebSocketConnection(context);
-                        });
-
-                    });
-
-                    //terminal middleware for unhandled routes
-                    app.Run(async context => 
-                    {
-                        await HandleNotFound(context);
-                    });
-
-                });
-
-                //clear the output logging to console so that our spectrum analyzer bar display does not get spoiled by ASP.NET's log messages 
-                webBuilder.SuppressStatusMessages(true);
-                webBuilder.ConfigureLogging((context, logging) => 
-                {
-                    logging.ClearProviders();
-                });
-    
-            }).Build();
-
-            host.Run();
+            webBuilder.UseUrls(_url);
             
-        }, TaskCreationOptions.LongRunning);
+            webBuilder.Configure(app => 
+            {
+                app.UseDefaultFiles();
+                app.UseStaticFiles(new StaticFileOptions 
+                {
+                    DefaultContentType = "text/html",
+                    FileProvider  = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
+                });
+
+                //websocket with 1 min keepalive ping-pong
+                app.UseWebSockets(new WebSocketOptions{ KeepAliveInterval = TimeSpan.FromMinutes(1)});
+
+                
+                app.UseRouter(routes => 
+                {
+                    routes.MapGet("/api/config", async context => 
+                    {
+                        await HandleGetConfig(context);
+                    });
+
+                    routes.MapPost("/api/config", async context => 
+                    {
+                        await HandleUpdateConfig(context);
+                    });
+
+                    routes.MapRoute("/ws", async context => 
+                    {
+                        await HandleWebSocketConnection(context);
+                    });
+
+                });
+
+                //terminal middleware for unhandled routes
+                app.Run(async context => 
+                {
+                    await HandleNotFound(context);
+                });
+
+            });
+
+            //clear the output logging to console so that our spectrum analyzer bar display does not get spoiled by ASP.NET's log messages 
+            webBuilder.SuppressStatusMessages(true);
+            webBuilder.ConfigureLogging((context, logging) => 
+            {
+                logging.ClearProviders();
+            });
+
+        }).Build();
+
+        // host.Run();
+        return host.RunAsync(cts.Token);
 
     }
 

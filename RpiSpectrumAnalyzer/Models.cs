@@ -29,6 +29,12 @@ struct ColPeak
     public long PrevMilSecs { get; set; }    
 }
 
+class CaptureResult
+{
+    public byte[]? Buffer { get; set; }
+    public Exception? Exception { get; set; }
+}
+
 class AnalyzerParams
 {
     public int[]? Bands { get; set; }
