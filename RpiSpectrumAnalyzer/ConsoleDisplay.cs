@@ -157,8 +157,7 @@ class ConsoleDisplay : DisplayBase
 
         string label = value.ToString();
         if(value >= 1000){
-            var freq = Math.Round(Convert.ToDecimal(value/1000), 1);
-            label = $"{freq}K"; 
+            label = $"{Convert.ToInt32(value/1000)}K"; 
         }
 
         Console.Write(label); 

@@ -1,4 +1,5 @@
 using Alsa.Net;
+using Alsa.Net.Internal;
 
 namespace RpiSpectrumAnalyzer;
 
