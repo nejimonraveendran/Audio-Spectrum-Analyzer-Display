@@ -68,7 +68,7 @@ class Program
         if(_webDisplayEnabled)
             displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));                                
 
-        ledServer.DisplayClients.AddRange(displays);
+        ledServer.DisplayClients.AddRange(displays);        
         ledServer.Start(cts);
 
 
@@ -83,7 +83,6 @@ class Program
             displays.ForEach(display => display.DisplayAsLevels(bands));
 
         }, sampleRate, cts);
-
 
         PrepareForExit(displays, cts);    
 
