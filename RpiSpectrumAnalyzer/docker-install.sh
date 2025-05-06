@@ -17,4 +17,4 @@ docker run --rm -it -p 8090:8090 \
   --env PULSE_COOKIE=/tmp/pulseaudio.cookie \
   --volume ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
   --device /dev/snd \
-  rpispectrumanalyzer:v1
+  nejimonraveendran/rpispectrumanalyzer:v1 --disable-led-display

@@ -166,10 +166,10 @@ class ConsoleDisplay : DisplayBase
     private void DisplayInfo(){
         Console.ForegroundColor = ConsoleColor.White;
         Console.SetCursorPosition(0,  _lastRow+2); 
-        Console.Write(Info);
+        Console.Write(Message);
     }
 
-    public string Info { get; set; }
+    public string Message { get; set; }
 
     private int GetPeakRow(int col, int value)
     {

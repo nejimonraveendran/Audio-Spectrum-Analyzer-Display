@@ -32,12 +32,14 @@ class Program
     private static bool _consoleDisplayEnabled = true;
     private static bool _ledDisplayEnabled = true;
     private static bool _webDisplayEnabled = true;
+    private static LedDisplayWiring _ledDisplayWiring = LedDisplayWiring.ZigZag;
+    
     
     
     static async Task Main(string[] args)
     {
         if (!SetConfigFromArgs(args)) return;
-        
+
         const int sampleRate = 44100; //sampling frequency in Hz
         var cts = new CancellationTokenSource();
         var displays = new List<DisplayBase>();
@@ -48,7 +50,7 @@ class Program
         try
         {
             if(_ledDisplayEnabled)
-                displays.Add(new LedDisplay(_ledDisplayLevels, _bands.Length));
+                displays.Add(new LedDisplay(_ledDisplayLevels, _bands.Length, _ledDisplayWiring));
         }
         catch (Exception ex) 
         {
@@ -57,11 +59,15 @@ class Program
             return;              
         }
 
+        string consoleMessage = $"Server running at {_ledServerUrl}. Press any key to exit.";
         if(_consoleDisplayEnabled)
         {
             var consoleDisplay = new ConsoleDisplay(_consoleDisplayLevels, _bands.Length);
-            consoleDisplay.Info = $"Server running at {_ledServerUrl}. Press any key to exit.";
+            consoleDisplay.Message = consoleMessage;
             displays.Add(consoleDisplay);
+        }else
+        {
+            Console.WriteLine(consoleMessage);
         }
 
         
@@ -140,8 +146,6 @@ class Program
                 {
                     optionsDict.Add(args[i], string.Empty);
                 }
-
-                
             }
 
             string portOption = "--port";
@@ -193,6 +197,26 @@ class Program
             if(optionsDict.ContainsKey("--disable-web-display"))
             {
                 _webDisplayEnabled = false;
+            }
+
+            string ledDisplayWiring = "--led-display-wiring";
+            if(optionsDict.ContainsKey(ledDisplayWiring))
+            {
+                var wiring = optionsDict.FirstOrDefault(kvp => kvp.Key == ledDisplayWiring).Value.Trim().ToLower();
+
+                _ledDisplayWiring = wiring switch
+                {
+                    "serpentine" => LedDisplayWiring.Serpentine,
+                    "zigzag" => LedDisplayWiring.ZigZag,
+                    "s" => LedDisplayWiring.Serpentine,
+                    "z" => LedDisplayWiring.ZigZag,
+                    _ => LedDisplayWiring.ZigZag
+                };
+
+            }
+            else
+            {
+                _ledDisplayWiring = LedDisplayWiring.ZigZag;
             }
 
             return true;

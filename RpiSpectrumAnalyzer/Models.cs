@@ -55,6 +55,13 @@ enum WebDisplayEvent
     CLEAR = 4
 }
 
+enum LedDisplayWiring
+{
+    ZigZag = 0,
+    Serpentine = 1
+}
+
+
 class DisplayConfiguration
 {
     public DisplayType DisplayType { get; set; }

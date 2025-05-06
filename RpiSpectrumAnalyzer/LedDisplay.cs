@@ -12,9 +12,11 @@ class LedDisplay : DisplayBase
     private int _brightnessMin;
     private int _brightness;
     private int _brightnessMax;
+    private LedDisplayWiring _ledDisplayWiring;
     
-    public LedDisplay(int rows, int cols)
+    public LedDisplay(int rows, int cols, LedDisplayWiring wiring = LedDisplayWiring.ZigZag)
     {
+        _ledDisplayWiring = wiring;
         _rows = rows;
         _cols = cols;
         _curLevels = new double[_rows];
@@ -50,7 +52,7 @@ class LedDisplay : DisplayBase
         };
 
         using SpiDevice spi = SpiDevice.Create(spiSettings);
-        _ledMatrix = new Ws2812b(spi, _cols, _rows);
+        _ledMatrix = new Ws2812b(spi, _cols * _rows);
 
         SetupDefaultColors();
         Clear();
@@ -138,11 +140,17 @@ class LedDisplay : DisplayBase
 
             for (int y = 0; y < _rows; y++)
             {
+                int i;
+                if(_ledDisplayWiring == LedDisplayWiring.Serpentine)
+                    i = SerpentineXY2Index(x, y);
+                else
+                    i = ZigZagXY2Index(x, y);
+
                 if(y < _curLevels[x] ){
                     var pixelColor = ColorConversion.PixelColorWithBrightness(_pixelColors[x][y], _brightness);
-                    _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B)); //x, y reversed because of the bottom-to-top LED strip wiring in my case
+                    _ledMatrix.Image.SetPixel(i, 0, Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B)); //x, y reversed because of the bottom-to-top LED strip wiring in my case
                 }else{
-                      _ledMatrix.Image.SetPixel(y, x, Color.FromArgb(0, 0, 0));
+                      _ledMatrix.Image.SetPixel(i, 0, Color.FromArgb(0, 0, 0));
                 }         
             }
 
@@ -193,14 +201,20 @@ class LedDisplay : DisplayBase
             targetPeakRow = 0;
         }
 
+        int i;
+        if(_ledDisplayWiring == LedDisplayWiring.Serpentine)
+            i = SerpentineXY2Index(col, _colPeaks[col].Row);
+        else
+            i = ZigZagXY2Index(col, _colPeaks[col].Row);
+
         if(_colPeaks[col].Row >= targetPeakRow) //if value (x) not at bottom, set peak color of the row
         {
             var peakColor = ColorConversion.PixelColorWithBrightness(_peakColor, _brightness);
-            _ledMatrix.Image.SetPixel(_colPeaks[col].Row, col, Color.FromArgb(peakColor.R, peakColor.G, peakColor.B)); //x, y reversed because of the LED strip wiring in my case
+            _ledMatrix.Image.SetPixel(i, 0, Color.FromArgb(peakColor.R, peakColor.G, peakColor.B)); //x, y reversed because of the LED strip wiring in my case
         }
         else //otherwise set to black. 
         { 
-            _ledMatrix.Image.SetPixel(_colPeaks[col].Row, col, Color.FromArgb(0, 0, 0));
+            _ledMatrix.Image.SetPixel(i, 0, Color.FromArgb(0, 0, 0));
         }
 
         //logic for the peaks to fall down
@@ -225,6 +239,25 @@ class LedDisplay : DisplayBase
             
         }
 
+    }
+
+    private int ZigZagXY2Index(int x, int y)
+    {
+        return x * _rows + y;
+    }
+
+    public int SerpentineXY2Index(int x, int y)
+    {
+        if (x % 2 == 0)
+        {
+            // Even row: left to right
+            return x * _rows + y;
+        }
+        else
+        {
+            // Odd row: right to left
+            return x * _rows + (_rows - 1 - y);
+        }
     }
 
 }
