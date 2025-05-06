@@ -69,8 +69,14 @@ class Program
             displays.Add(new WebDisplay(_webDisplayLevels, _bands.Length));                                
 
         ledServer.DisplayClients.AddRange(displays);        
-        ledServer.Start(cts);
-
+        
+        var ledServerTask = ledServer.Start(cts);
+        if(ledServerTask.Exception != null)
+        {
+            ShowError("Error during web server startup.", ledServerTask.Exception); 
+            PrepareForExit(displays, cts);
+            return; 
+        }
 
         //start capturing system audio (executed on a different threat)
         AudioCapture.StartCapture(result =>{
@@ -83,7 +89,7 @@ class Program
             displays.ForEach(display => display.DisplayAsLevels(bands));
 
         }, sampleRate, cts);
-
+        
         PrepareForExit(displays, cts);    
 
     }

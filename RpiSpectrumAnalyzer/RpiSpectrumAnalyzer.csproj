@@ -20,5 +20,10 @@
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <Content Include="wwwroot\**\*">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

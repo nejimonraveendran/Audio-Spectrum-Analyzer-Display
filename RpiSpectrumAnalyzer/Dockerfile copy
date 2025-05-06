@@ -1,21 +1,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+RUN apt update -y
+RUN apt install alsa-utils -y
+RUN apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y
+RUN apt install libasound2-dev -y
+
 WORKDIR /tmp/src
 COPY . .
-RUN dotnet publish -c Release -r linux-arm64 -o ./publish
 
+RUN dotnet build
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-WORKDIR /app
-COPY --from=build /tmp/src/publish .
-RUN apt update -y
-RUN apt install pulseaudio -y
-RUN apt install libasound2-dev -y
+WORKDIR /tmp/src/bin/Debug/net8.0
 
 ENTRYPOINT ["dotnet", "RpiSpectrumAnalyzer.dll"]
 
 # CMD ["bash"]
 
-# usage:
 # docker run --rm -it -p 8090:8090 \
 #   --privileged \
 #   --user $(id -u):$(id -g) \

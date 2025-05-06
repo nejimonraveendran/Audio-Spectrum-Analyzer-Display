@@ -13,7 +13,7 @@ static class AudioCapture
     /// <param name="callback">Callback function to receive the captured sample (byte array buffer)</param>
     public static void StartCapture(Action<CaptureResult> callback, uint sampleRate, CancellationTokenSource cts)
     {
-        Task.Factory.StartNew(() => {
+        Task.Run(() => {
 
             var settings = new SoundDeviceSettings
             {
@@ -48,6 +48,7 @@ static class AudioCapture
         }, cts.Token);
 
     }
+
 }
 
 

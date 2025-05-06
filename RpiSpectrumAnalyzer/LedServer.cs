@@ -28,7 +28,7 @@ class LedServer
         
     }
 
-    public void Start(CancellationTokenSource cts)
+    public Task Start(CancellationTokenSource cts)
     {
         var host = Host.CreateDefaultBuilder()
         .ConfigureWebHostDefaults(webBuilder => 
@@ -86,7 +86,7 @@ class LedServer
         }).Build();
 
         // host.Run();
-        host.RunAsync(cts.Token);
+        return host.RunAsync(cts.Token);
 
     }
 
