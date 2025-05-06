@@ -29,8 +29,9 @@ class Program
     private static int _consoleDisplayLevels = 16; //default number of levels
     private static int _ledDisplayLevels = 10; //number of levels
     private static int _webDisplayLevels = 15; //number of levels
+    private static int _ledDisplayCols = 0; //number of LED display cols (for validation against number of bands)
     private static bool _consoleDisplayEnabled = true;
-    private static bool _ledDisplayEnabled = true;
+    private static bool _ledDisplayEnabled = false;
     private static bool _webDisplayEnabled = true;
     private static LedDisplayWiring _ledDisplayWiring = LedDisplayWiring.ZigZag;
     
@@ -50,11 +51,19 @@ class Program
         try
         {
             if(_ledDisplayEnabled)
+            {
+                if(_bands.Length > _ledDisplayCols){
+                    ShowError($"Number of bands ({_bands.Length}) cannot be greater than number of LED columns ({_ledDisplayCols}).  Please use --bands and --led-display-cols options.");
+                    PrepareForExit(displays, cts);
+                    return;
+                }
+
                 displays.Add(new LedDisplay(_ledDisplayLevels, _bands.Length, _ledDisplayWiring));
+            }
         }
         catch (Exception ex) 
         {
-            ShowError("Error during setting up LED Didplay. Please make sure SPI settings are correctly configured. To disable LED Display, use --disable-led-display command line option.", ex);      
+            ShowError("Error during setting up LED Didplay. Please make sure SPI settings are correctly configured.", ex);      
             PrepareForExit(displays, cts);
             return;              
         }
@@ -87,7 +96,7 @@ class Program
         //start capturing system audio (executed on a different threat)
         AudioCapture.StartCapture(result =>{
             if(result.Exception != null){
-                ShowError("Error during audio capture. Please make sure PulseAudio is installed and running.", result.Exception);
+                ShowError("Error during audio capture.", result.Exception);
                 return;
             }
 
@@ -108,13 +117,18 @@ class Program
         displays.ForEach(display => display.Clear());   
     }
 
-    private static void ShowError(string message, Exception exception)
+    private static void ShowError(string message, Exception? exception = null)
     {
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(message);
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(exception?.ToString());
+
+        if(exception != null)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(exception?.ToString());
+        }
+
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("Press any key to exit.");
         
@@ -139,7 +153,7 @@ class Program
             for (int i = 0; i < args.Length; i++)
             {
                 if(!args[i].StartsWith("--")) continue;
-                if(!args[i].StartsWith("--disable-")){
+                if(!args[i].StartsWith("--disable-") && !args[i].StartsWith("--enable-")){
                     optionsDict.Add(args[i], args[i+1]);
                 }
                 else
@@ -169,6 +183,14 @@ class Program
                 _ledDisplayLevels = string.IsNullOrEmpty(ledLevels) ? _ledDisplayLevels : Convert.ToInt32(ledLevels);
             }
 
+
+            string ledDisplayColsOption = "--led-display-cols";
+            if(optionsDict.ContainsKey(ledDisplayColsOption))
+            {
+                var ledCols = optionsDict.FirstOrDefault(kvp => kvp.Key == ledDisplayColsOption).Value.Trim();
+                _ledDisplayCols = string.IsNullOrEmpty(ledCols) ? _ledDisplayCols : Convert.ToInt32(ledCols);
+            }
+
             string webDisplayLevelOption = "--web-display-levels";
             if(optionsDict.ContainsKey(webDisplayLevelOption))
             {
@@ -189,9 +211,9 @@ class Program
                 _consoleDisplayEnabled = false;
             }
 
-            if(optionsDict.ContainsKey("--disable-led-display"))
+            if(optionsDict.ContainsKey("--enable-led-display"))
             {
-                _ledDisplayEnabled = false;
+                _ledDisplayEnabled = true;
             }
 
             if(optionsDict.ContainsKey("--disable-web-display"))

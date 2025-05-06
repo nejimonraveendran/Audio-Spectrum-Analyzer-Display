@@ -1,90 +1,91 @@
-# Raspberry Pi Audio Spectrum Analyzer Display using .NET
-This project implements a spectrum analyzer display on Raspberry Pi using C#.NET.  It captures the audio currently being played on the desktop, via bluetooth, etc., and converts into audio level visualization. 
+# Raspberry Pi Audio Spectrum Analyzer Display Using .NET
+This project implements an audio spectrum analyzer display on Raspberry Pi using C#.NET.  It captures the audio currently being played on the Pi (e.g., via bluetooth, on the Desktop, etc.) and converts the signals into audio level visualization. 
 
 ## Features
 ### 3 Types of Displays
 The spectrum analyzer display can plot the visualization output to 3 types of displays:
-- Web Display:  Display shown on a the home page of the application's integrated web portal (default port: 8090).
-- Console Display:  Display directly on Raspberry Pi's Terminal or the Terminal of a connected Windows device.
-- RGB LED Display Matrix (WS2812B) connected to the GPIO pin 10 of the Raspberry Pi.
+- Web Display:  Display shown on a the home page of the application's integrated web portal (default port: 8090).  Web Display is enabled by default.
+- Console Display:  Display directly on Pi's Terminal or the Terminal of a device connected via SSH (eg. Windows laptop).  Console Display is enabled by default.
+- LED Display:  Display via WS2812B RGB LED Matrix connected to the GPIO pin 10 of the Pi. LED Display is disabled by default.  Please refer to the below sections in this document to enable LED Display. 
 
 ### Integrated Web Portal 
-- An integrated web portal runs on default port 8090.  This portal can be accessed locally via http://localhost:8090 or via other devices on the network via your Raspberry Pi's host name (for eg. http://raspberrypi.local:8090)
+- An integrated web portal runs on port 8090.  This portal can be accessed via http://localhost:8090 or via other devices on the local network through the Pi's host name (for e.g., http://raspberrypi.local:8090)
 - Ability to configure the colors of the visualization display.
-- Ability to configure various properties of the display such as speed, peak delay, amplification, display brightness, etc.   
+- Ability to configure various properties of the display such as speed, peak delay, amplification, LED display brightness, etc.   
 
 ### Configurable via command-line
-- Turn on/off displays: You can run all 3 types of displays at the same time or turn/off one or more via command-line options
+- Turn on/off displays: You can run all 3 types of displays at the same time or turn/off one or more via command-line options.  Please refer to the Command Line Reference section in this document for supported command line options. 
 - Band selection: You can configure frequency bands (Hz) via command line.
-- You can change the default port the web portal listens on to another port. 
+- Web portal port selection: You can change the default port (8090) to another port via command line. 
 
 ## How it Works
 The application does the following at a high level:
-- Captures the audio currently playing using Alsa.Net C# library 
-- Performs Fast Fourier Transform (FFT) on the audio buffer using FftSharp C# library puts the frequencies into specified bands
-- Visualizes the frequencies as levels, through RGB LED Display, Web Page Display, and Terminal/Console Display.
+- Captures the audio currently playing using ALSA (Advanced Linux Sound Architecture) APIs. I use [Alsa.NET C# nuget library](https://www.nuget.org/packages/Alsa.Net) for this. 
+- Performs Fast Fourier Transform (FFT) on the captured audio buffer using [FftSharp C# nuget library](https://www.nuget.org/packages/FftSharp) and puts the frequencies into specified bands.
+- Visualizes the frequencies as bar display levels through Web Display, Terminal/Console Display, and RGB LED Display.
 
 ## Device Support
-This project was developed and tested on Raspberry Pi 5 running Raspberry Pi OS (both full desktop OS and OS Lite - Debian Bookworm).  While this may work on other versions of Raspberry Pi, it was not tested on them.  For the RGB LED Display, any WS2812B RGB LED strip commonly available can be used (refer to the Hardware Setup section below).
+This project was developed on Raspberry Pi 5 running Raspberry Pi OS (both full desktop OS and OS Lite - Debian Bookworm).  It was also tested on Raspberry Pi Zero 2W. While this may work on other versions of Raspberry Pi and/or other operating systems, it was not tested on them.  For the RGB LED display, any WS2812B RGB LED strip or matrix commonly available in the market (e.g., on Amazon) can be used (refer to the LED Matrix Setup section below).
 
-## LED Hardware Setup - Optional
-If you plan to connect WS2812B LED Strip, follow the instructions provided below for the wiring and the GPIO connections:
-
-## Raspberry Pi SPI Configuration - Optional (Reboot Required)
-If you want to use connect WS2812B LED Strip/matrix, you must enable SPI on the Raspberry Pi. This is done by editing the file _/boot/firmware/config.txt_ on your Raspberry Pi. If don't want to enable SPI settings and you don't want to connect LED matrix, start the application with the command line option --disable-led-display.  Otherwise, the application will throw an error upon startup.
-
-**To Enable SPI protocol:**  Open _/boot/firmware/config.txt_ in a text Editor and add the following lines at the end of the file
+## LED Matrix Setup - Optional (Reboot Required)
+If you plan to connect WS2812B RGB LED strip or matrix, follow the instructions provided in this section. The LED display is is driven through the SPI interface of the Pi. To configure SPI settings:
+- **Enable SPI protocol:**  Open _/boot/firmware/config.txt_ in a text editor such as Nano.  Look for the following lines.  If you do not find them there, add them at the end of the file:
 ```
 dtparam=spi=on
 core_freq=250
 core_freq_min=250
 ```
 
-**Set SPI buffer size:**  Open _/boot/firmware/cmdline.txt_ in a text Editor and add the following at the end of the file
+**Set SPI buffer size:**  Open _/boot/firmware/cmdline.txt_ in a text editor and add the following at the end of the file (if not already exists):
 ```
 spidev.bufsiz=65536
 ```
 
-After the above steps are complete, you MUST restart the Pi so that the SPI settings take effect upon next boot
+After the above steps are complete, you MUST restart the Pi so that the SPI settings take effect upon next boot.
 
 ```
 sudo reboot now
 ```
 
-## Prerequisites Installation
-Tip: You can run the _prereq.sh_ script provided in this project to install the dependencies as a single step by issuing this command:
-
-```
-./prereq.sh
-```
-
-Explanation:  The above script does the following:
-- Installs Git, wget, etc., if not not already installed
-- Installs PluseAudio sound server and associated Bluetooth modules
-- Installs ALSA (Advanced Linux Sound Architecture) APIs, which is a dependency of Alsa.Net C# library used in the project.
-- Installs .NET 8
-- Clones this repo to the current path on the local file system
-- Builds the project and change the current directory location to the build output path.
-
 ## Running the project
-To run the project, issue the following from the build output path:
+Before you can run the project, you must install the following prerequisites on the Pi:
 
 ```
-./RpiSpectrumAnalyzer
+sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y 
+sudo apt install libasound2-dev -y
 ```
 
-If you have not connected LED matrix display, use the following command line option (for other supported command line options, refer to Command Line Reference section at the end of this document):
+After the installation of the above, start PulseAudio with the command.  This usually needs to be done only once.  Normally, when the Pi starts next time, PulseAudio server starts automatically.  
 ```
-./RpiSpectrumAnalyzer --disable-led-display
+pulseaudio --start
 ```
 
-By default, this will run the application on port 8090.  If you are using Rasperry Pi Os Desktop, you access the application's web interface through the browser at the address:
+Now you can run the project. You can do so in 2 ways:
+- **Run as Docker container:**  This is the easier and simpler approach so that you do not have to download the code and compile it.  If you already have Docker installed, use the following command to run this project:
+
+```
+docker run --rm -it -p 8090:8090 \
+  --privileged \
+  --user $(id -u):$(id -g) \
+  --group-add $(getent group spi | cut -d: -f3) \
+  --env PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+  --env PULSE_COOKIE=/tmp/pulseaudio.cookie \
+  --volume ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+  --device /dev/snd \
+  nejimonraveendran/rpispectrumanalyzer:v1
+```
+
+If you do not have Docker installed, you can install Docker using the commands provided in the _run-docker.sh_ file provided in the source folder. 
+
+- **Run locally:**  You can clone this repo onto the Pi, open it in Visual Studio Code, build it, and run.  If you don't want to edit the code, you can use the commands provided in the _run-local.sh_ to install the dependencies, clone the repo, build the code, and then run it. 
+
+Regardless of which method you use, by default, this will run the application on port 8090.  If you are using Rasperry Pi Os Desktop, you access the application's web interface through the browser at the address:
 
 ```
 http://localhost:8090
 ```
 
-If you want to access from other devices on the same network, use your Raspberry Pi's hostname or LAN IP address.  For example:
+If you want to access from other devices on the same network, use the Pi's hostname or LAN IP address.  For example:
 
 ```
 http://raspberrypi.local:8090
@@ -94,19 +95,29 @@ Now play some audio on your Raspberry Pi, and you should be able to see the audi
 
 
 ## Connecting Bluetooth Audio Devices
-If you want to pair a new Bluetooth audio device such as your phone, first you need to pair the device with your Raspberry Pi. You can pair the device using the GUI via desktop. Once the Pi's discoverability is turned on, the Pi's hostname will be shown on your phone under the the available bluetooth devices.  You can directly pair from there. However, if you are using Rasperry Pi OS Lite and connecting to the Pi via Terminal SSH, use the following method to pair a new device.
+If you want to visualize Bluetooth audio from another device such as your phone, first you need to pair the device with the Pi. This can be done directly from Pi's desktop or via command line. If you want to do it via command line (e.g., SSH Terminal), use the following method to pair a new device.
 
-First of all, turn on Bluetooth scanning:
+First of all, issue the command and press Enter:
 ```
-bluetoothctl power on
-bluetoothctl discoverable on
-bluetoothctl scan on
+bluetoothctl
 ```
-The above command will start listing the Bluetooth devices around.  Look for the name of the device you want to pair with and note down the MAC address of the device once it is found in the list.  Pair the device using the following commands:
+On the prompt that appears, issue commands:
 
 ```
-bluetoothctl pair <mac_address>
-bluetoothctl trust <mac_address>
+power on
+discoverable on
+scan on
+```
+
+The above command will start listing the Bluetooth devices around.  Look for the name of the device you want to pair with and note down the MAC address of the device once it is appears in the list.  Pair the device using the following commands:
+
+```
+pair <mac_address>
+trust <mac_address>
+```
+Once the device is successful paired, exit the prompt by typing:
+```
+exit 
 ```
 
 To view already paired/connected devices, you can use:
@@ -161,14 +172,6 @@ Disables console display.  Default is enabled.  Example:
 ./RpiSpectrumAnalyzer --disable-console-display
 ```
 
-``` --disable-led-display ``` 
-
-Disables LED display.  Default is enabled. If Pi's SPI settings are not enabled via firmware settings, this option must be used.  Otherwise, the program will throw an error on startup.   Example:
-```
-./RpiSpectrumAnalyzer --disable-led-display
-```
-
-
 ``` --disable-web-display ``` 
 
 Disables web display.  Default is enabled.  Example:
@@ -176,14 +179,46 @@ Disables web display.  Default is enabled.  Example:
 ./RpiSpectrumAnalyzer --disable-web-display
 ```
 
+``` --enable-led-display ``` 
+
+Enables RGB LED display.  Default is disabled. The default behavior is by design based on the assumption that not every user may have a WS2812B RGB LED strip/matrix available or connected to the Pi.  If you enable the display, you MUST also enable the Pi's SPI settings.  You must also specify the number of columns in the LED Matrix via the option ```--led-display-cols ```.  Example:
+```
+./RpiSpectrumAnalyzer --enable-led-display --led-display-cols 8
+```
+
+
 ``` --bands ``` 
 
-Specifies custom band frequencies in Hz as comma separated values surrounded by double quotes.  Default is 10 bands. If you use LED display, the number of columns in the LED matrix MUST match the number of bands. Otherwise, unexpected display behavior might happen.  Example:
+Specifies custom band frequencies in Hz as comma separated values surrounded by double quotes.  Default is 10 bands. If you use RGB LED display, the maximum number of bands MUST NOT exceed be the number of columns in the LED matrix. Otherwise, an error will be thrown or unexpected display behavior might happen.  Example:
 
 ```
 ./RpiSpectrumAnalyzer --bands "100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000"  
 
 ```
+
+``` --led-display-wiring [serpentine, s | zigzag, z]```
+There are 2 types of LED wiring supported:
+-  **Zig-Zag Wiring:** In this wiring the LED matrix is wired as below:
+-  **Serpentine Wiring:** In this wiring the LED matrix is wired as below:
+
+Default is Zig-Zag wiring.
+
+Example usage (Serpentine):
+```
+./RpiSpectrumAnalyzer --led-display-wiring s
+```
+
+## Final Words
+
+There are many things that can be implemented, but I have not done so because of the time constraints. Contributions are welcome.  Currently, I have not set up related settings.  However, if you are interested in contributing to this project, please let me know via opening an issue, etc., and I will consider setting up for contributions.  Some of the backlog I can think of:
+- Ability to persist the configuration/settings on the server side in a database.
+- More types of visualizations.
+- Support for more devices/platforms.
+- Converting the UI from jQuery to a more modern framework such as Angular, React, etc.
+- Converting Web Sockets to the newer Server Sent Events available in .NET 10.
+- Potentially other features :)
+
+
 
 
 

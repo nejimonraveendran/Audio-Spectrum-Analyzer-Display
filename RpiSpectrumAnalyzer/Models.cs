@@ -105,4 +105,3 @@ class PixelColor
     public int B { get; set; }
     
 }
-
