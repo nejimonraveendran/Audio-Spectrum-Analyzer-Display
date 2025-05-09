@@ -134,14 +134,6 @@ class Program
         
     }
 
-    // --port http://0.0.0.0:9090 
-    // --bands "100, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000" 
-    // --console-display-levels 20 
-    // --led-display-levels 10 
-    // --web-display-levels 20
-    // --disable-console-display
-    // --disable-led-display
-    // --disable-web-display
     private static bool SetConfigFromArgs(string[] args)
     {
         if(args.Length == 0) return true;
@@ -163,40 +155,36 @@ class Program
             }
 
             string portOption = "--port";
-            if(optionsDict.ContainsKey("--port"))
+            if(optionsDict.ContainsKey(portOption))
             {
-                var port = optionsDict.FirstOrDefault(kvp => kvp.Key == portOption).Value.Trim();
-                _ledServerUrl = string.IsNullOrEmpty(port) ? _ledServerUrl : $"http://0.0.0.0:{port}";
+                int port = ConvertOptionToInt(optionsDict, portOption);
+                _ledServerUrl = $"http://0.0.0.0:{port}";
             }
 
             string consoleDisplayLevelsOption = "--console-display-levels";
             if(optionsDict.ContainsKey(consoleDisplayLevelsOption))
             {
-                var consoleLevels = optionsDict.FirstOrDefault(kvp => kvp.Key == consoleDisplayLevelsOption).Value.Trim();
-                _consoleDisplayLevels = string.IsNullOrEmpty(consoleLevels) ? _consoleDisplayLevels : Convert.ToInt32(consoleLevels);
+                _consoleDisplayLevels = ConvertOptionToInt(optionsDict, consoleDisplayLevelsOption); 
             }
-
+            
             string ledDisplayLevelsOption = "--led-display-levels";
             if(optionsDict.ContainsKey(ledDisplayLevelsOption))
             {
-                var ledLevels = optionsDict.FirstOrDefault(kvp => kvp.Key == ledDisplayLevelsOption).Value.Trim();
-                _ledDisplayLevels = string.IsNullOrEmpty(ledLevels) ? _ledDisplayLevels : Convert.ToInt32(ledLevels);
+                _ledDisplayLevels = ConvertOptionToInt(optionsDict, ledDisplayLevelsOption);
             }
-
 
             string ledDisplayColsOption = "--led-display-cols";
             if(optionsDict.ContainsKey(ledDisplayColsOption))
             {
-                var ledCols = optionsDict.FirstOrDefault(kvp => kvp.Key == ledDisplayColsOption).Value.Trim();
-                _ledDisplayCols = string.IsNullOrEmpty(ledCols) ? _ledDisplayCols : Convert.ToInt32(ledCols);
+                _ledDisplayCols = ConvertOptionToInt(optionsDict, ledDisplayColsOption);
             }
 
             string webDisplayLevelOption = "--web-display-levels";
             if(optionsDict.ContainsKey(webDisplayLevelOption))
             {
-                var webLevels = optionsDict.FirstOrDefault(kvp => kvp.Key == webDisplayLevelOption).Value.Trim();
-                _webDisplayLevels = string.IsNullOrEmpty(webLevels) ? _webDisplayLevels : Convert.ToInt32(webLevels);
+                _webDisplayLevels = ConvertOptionToInt(optionsDict, webDisplayLevelOption);
             }
+
 
             string bandsOption = "--bands";
             if(optionsDict.ContainsKey(bandsOption))
@@ -250,7 +238,21 @@ class Program
             Console.WriteLine("Error parsing the input options: " + Environment.NewLine + ex.Message);
             return false;
         }
-
     }
+
+    private static int ConvertOptionToInt(Dictionary<string, string> optionsDict, string optionKey)
+    {
+        string optionValue = optionsDict.FirstOrDefault(kvp => kvp.Key == optionKey).Value;
+
+        if(string.IsNullOrWhiteSpace(optionValue))
+            throw new ArgumentException($"Command command line option cannot be empty: {optionKey}");
+
+        if (!int.TryParse(optionValue.Trim(), out int result)) 
+            throw new ArgumentException($"Command command line option must be an integer: {optionKey}");
+
+        return result;
+        
+    }
+
 }
 

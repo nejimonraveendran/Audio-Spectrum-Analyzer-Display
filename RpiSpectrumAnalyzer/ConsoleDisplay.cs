@@ -123,7 +123,7 @@ class ConsoleDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 if(y < _curLevels[x] ){
-                    Console.ForegroundColor = ColorConversion.PixelColorToConsoleColor(_pixelColors[x][y]); //_pixelColors[x, y];
+                    Console.ForegroundColor = ColorConversion.PixelColorToConsoleColor(_pixelColors[x][y]); 
                 }else{
                     Console.ForegroundColor = ConsoleColor.Black;
                 }         
@@ -228,10 +228,10 @@ class ConsoleDisplay : DisplayBase
         
         for (int x = 0; x < _cols; x++)
         {
-            _pixelColors[x] = new PixelColor[_rows]; //_pixelColors[x] = new Color[_rows, _cols];
+            _pixelColors[x] = new PixelColor[_rows]; 
             for (int y = 0; y < _rows; y++)
             {
-                _pixelColors[x][y] = gradient[y]; //1 = full saturation, 
+                _pixelColors[x][y] = gradient[y];  
             }            
         }
     }
