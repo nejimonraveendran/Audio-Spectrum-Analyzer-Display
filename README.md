@@ -5,7 +5,8 @@ This repository contains two main projects, both implementing an audio spectrum 
 ![Spectrum Analyzer](/Assets/Rpi-Spectrum-Analyzer-thumb.jpg)
 
 
-![](/Assets/youtube.jpg) [Watch Video Demo](https://www.youtube.com/watch?v=yKQn0UK1OT8)
+![](/Assets/youtube.jpg) [Watch Video Demo](https://youtu.be/6JIdasmFJoA)
+
 
 ## Raspberry Pi Spectrum Analyzer 
 - Written in C# on .NET 8
