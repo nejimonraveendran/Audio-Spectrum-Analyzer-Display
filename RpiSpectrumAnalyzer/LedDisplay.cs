@@ -14,7 +14,7 @@ class LedDisplay : DisplayBase
     private int _brightnessMax;
     private LedDisplayWiring _ledDisplayWiring;
     
-    public LedDisplay(int rows, int cols, LedDisplayWiring wiring = LedDisplayWiring.ZigZag)
+    public LedDisplay(int rows, int cols, LedDisplayWiring wiring = LedDisplayWiring.ZigZagStrip)
     {
         _ledDisplayWiring = wiring;
         _rows = rows;
@@ -141,7 +141,7 @@ class LedDisplay : DisplayBase
             for (int y = 0; y < _rows; y++)
             {
                 int i;
-                if(_ledDisplayWiring == LedDisplayWiring.Serpentine)
+                if(_ledDisplayWiring == LedDisplayWiring.SerpentineMatrix)
                     i = SerpentineXY2Index(x, y);
                 else
                     i = ZigZagXY2Index(x, y);
@@ -202,7 +202,7 @@ class LedDisplay : DisplayBase
         }
 
         int i;
-        if(_ledDisplayWiring == LedDisplayWiring.Serpentine)
+        if(_ledDisplayWiring == LedDisplayWiring.SerpentineMatrix)
             i = SerpentineXY2Index(col, _colPeaks[col].Row);
         else
             i = ZigZagXY2Index(col, _colPeaks[col].Row);
@@ -242,7 +242,7 @@ class LedDisplay : DisplayBase
     }
 
     private int ZigZagXY2Index(int x, int y)
-    {
+    {        
         return x * _rows + y;
     }
 
@@ -251,12 +251,12 @@ class LedDisplay : DisplayBase
         if (x % 2 == 0)
         {
             // Even row: left to right
-            return x * _rows + y;
+            return x * _rows + (_rows-1 - y);
         }
         else
         {
             // Odd row: right to left
-            return x * _rows + (_rows - 1 - y);
+            return x * _rows + (_rows - 1 - (_rows-1 - y));
         }
     }
 

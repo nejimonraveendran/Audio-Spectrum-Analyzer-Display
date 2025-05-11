@@ -33,12 +33,13 @@ class Program
     private static bool _consoleDisplayEnabled = true;
     private static bool _ledDisplayEnabled = false;
     private static bool _webDisplayEnabled = true;
-    private static LedDisplayWiring _ledDisplayWiring = LedDisplayWiring.ZigZag;
+    private static LedDisplayWiring _ledDisplayWiring = LedDisplayWiring.ZigZagStrip;
     
     
     
     static async Task Main(string[] args)
     {
+
         if (!SetConfigFromArgs(args)) return;
 
         const int sampleRate = 44100; //sampling frequency in Hz
@@ -216,17 +217,17 @@ class Program
 
                 _ledDisplayWiring = wiring switch
                 {
-                    "serpentine" => LedDisplayWiring.Serpentine,
-                    "zigzag" => LedDisplayWiring.ZigZag,
-                    "s" => LedDisplayWiring.Serpentine,
-                    "z" => LedDisplayWiring.ZigZag,
-                    _ => LedDisplayWiring.ZigZag
+                    "serpentine" => LedDisplayWiring.SerpentineMatrix,
+                    "zigzag" => LedDisplayWiring.ZigZagStrip,
+                    "s" => LedDisplayWiring.SerpentineMatrix,
+                    "z" => LedDisplayWiring.ZigZagStrip,
+                    _ => LedDisplayWiring.ZigZagStrip
                 };
 
             }
             else
             {
-                _ledDisplayWiring = LedDisplayWiring.ZigZag;
+                _ledDisplayWiring = LedDisplayWiring.ZigZagStrip;
             }
 
             return true;

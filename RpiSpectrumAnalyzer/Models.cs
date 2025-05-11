@@ -57,8 +57,8 @@ enum WebDisplayEvent
 
 enum LedDisplayWiring
 {
-    ZigZag = 0,
-    Serpentine = 1
+    ZigZagStrip = 0,
+    SerpentineMatrix = 1
 }
 
 
