@@ -1,34 +1,40 @@
 # Raspberry Pi Audio Spectrum Analyzer Display Using .NET
-This project implements an audio spectrum analyzer display on Raspberry Pi using C#.NET.  It captures the audio currently being played on the Pi (e.g., via bluetooth, on the Desktop, etc.) and converts the signals into audio level visualization. 
+This project implements an audio spectrum analyzer display on Raspberry Pi using C#.NET.  It captures the audio currently being played on the Pi (e.g., via bluetooth, on the Desktop, etc.) and converts the audio signals into the visualization of frequency levels. 
+
+![Spectrum Analyzer](../Assets/Rpi-Spectrum-Analyzer-thumb.jpg)
 
 ## Features
 ### 3 Types of Displays
 The spectrum analyzer display can plot the visualization output to 3 types of displays:
-- Web Display:  Display shown on a the home page of the application's integrated web portal (default port: 8090).  Web Display is enabled by default.
-- Console Display:  Display directly on Pi's Terminal or the Terminal of a device connected via SSH (eg. Windows laptop).  Console Display is enabled by default.
-- LED Display:  Display via WS2812B RGB LED Matrix connected to the GPIO pin 10 of the Pi. LED Display is disabled by default.  Please refer to the below sections in this document to enable LED Display. 
+- **Web Display:**  Display shown on a the home page of the application's integrated web portal (default port: 8090).  Web Display is enabled by default.
+- **Console/Terminal Display:**  Display directly on Pi's Terminal or the Terminal of a device connected via SSH (eg. Windows laptop).  Console Display is enabled by default.
+- **LED Display:**  Display via WS2812B RGB LED Matrix connected to the GPIO pin 10 of the Pi. LED Display is disabled by default.  Refer to the [LED Display Setup](#led-display-setup---optional-reboot-required) to see how to enable LED Display. 
 
 ### Integrated Web Portal 
-- An integrated web portal runs on port 8090.  This portal can be accessed via http://localhost:8090 or via other devices on the local network through the Pi's host name (for e.g., http://raspberrypi.local:8090)
+- An integrated web portal runs on port 8090.  This portal can be accessed via http://localhost:8090 or via other devices on the local network through the Pi's host name (for e.g., http://raspberrypi.local:8090).
 - Ability to configure the colors of the visualization display.
 - Ability to configure various properties of the display such as speed, peak delay, amplification, LED display brightness, etc.   
 
-### Configurable via command-line
-- Turn on/off displays: You can run all 3 types of displays at the same time or turn/off one or more via command-line options.  Please refer to the Command Line Reference section in this document for supported command line options. 
-- Band selection: You can configure frequency bands (Hz) via command line.
-- Web portal port selection: You can change the default port (8090) to another port via command line. 
+### Configurable via Command Line
+- **Turn on/off displays:** You can run all 3 types of displays at the same time or turn on/off one or more via command-line options.  Refer to the [Command Line Reference](#command-line-reference) section in this document for supported command line options. 
+- **Band selection:** You can configure frequency bands (Hz) via command line.
+- **Web portal port selection:** You can change the default port (8090) to another port via command line. 
 
 ## How it Works
 The application does the following at a high level:
-- Captures the audio currently playing using ALSA (Advanced Linux Sound Architecture) APIs. I use [Alsa.NET C# nuget library](https://www.nuget.org/packages/Alsa.Net) for this. 
+- Captures the audio using ALSA (Advanced Linux Sound Architecture) APIs. I use [Alsa.NET C# nuget library](https://www.nuget.org/packages/Alsa.Net) for this. 
 - Performs Fast Fourier Transform (FFT) on the captured audio buffer using [FftSharp C# nuget library](https://www.nuget.org/packages/FftSharp) and puts the frequencies into specified bands.
-- Visualizes the frequencies as bar display levels through Web Display, Terminal/Console Display, and RGB LED Display.
+- Visualizes the frequencies as bar display levels through Web Display, Console/Terminal Display, and WS2812B RGB LED Display/Matrix.
 
 ## Device Support
-This project was developed on Raspberry Pi 5 running Raspberry Pi OS (both full desktop OS and OS Lite - Debian Bookworm).  It was also tested on Raspberry Pi Zero 2W. While this may work on other versions of Raspberry Pi and/or other operating systems, it was not tested on them.  For the RGB LED display, any WS2812B RGB LED strip or matrix commonly available in the market (e.g., on Amazon) can be used (refer to the LED Matrix Setup section below).
+This project was developed on Raspberry Pi 5 running Raspberry Pi OS Debian Bookworm (both full desktop OS and OS Lite).  It was also tested on Raspberry Pi Zero 2W with the same OS. While this may work on other versions of Raspberry Pi and/or other operating systems, it was not tested on them, and it may require modifications according to the hardware/OS Platform.  For the RGB LED display, any WS2812B RGB LED strip or matrix commonly available in the market (e.g., on Amazon) can be used (refer to the LED Matrix Setup section below).
 
-## LED Matrix Setup - Optional (Reboot Required)
-If you plan to connect WS2812B RGB LED strip or matrix, follow the instructions provided in this section. The LED display is is driven through the SPI interface of the Pi. To configure SPI settings:
+## LED Display Setup - Optional (Reboot Required)
+If you plan to connect WS2812B RGB LED strip or matrix, follow the instructions provided in this section. For reference the following were tested:
+- **LED Strip**: https://www.amazon.ca/WS2812B-Strip-Addressable-Pixel-Light/dp/B09P8MH56K
+- **LED Matrix**: https://www.amazon.ca/CANADUINO-Matrix-Fully-addressable-WS2812B/dp/B07PJQNCX6
+
+The LED display is is driven through the SPI interface of the Pi (GPIO pin 10). To configure SPI settings (Debian Bookworm OS):
 - **Enable SPI protocol:**  Open _/boot/firmware/config.txt_ in a text editor such as Nano.  Look for the following lines.  If you do not find them there, add them at the end of the file:
 ```
 dtparam=spi=on
@@ -47,6 +53,12 @@ After the above steps are complete, you MUST restart the Pi so that the SPI sett
 sudo reboot now
 ```
 
+
+To connect the WS2812B LED strip or matrix to the GPIO pin 10 (SPI), refer to the following diagram.  There are 2 types of wirings supported, as in the below image:
+![Spectrum Analyzer](../Assets/Rpi-Wiring.jpg)
+
+Selection of the wiring is controlled through command-line arguments. Refer to the [Command Line Reference](#command-line-reference).
+
 ## Running the project
 Before you can run the project, you must install the following prerequisites on the Pi:
 
@@ -55,10 +67,11 @@ sudo apt install bluez blueman pulseaudio pulseaudio-module-bluetooth -y
 sudo apt install libasound2-dev -y
 ```
 
-After the installation of the above, start PulseAudio with the command.  This usually needs to be done only once.  Normally, when the Pi starts next time, PulseAudio server starts automatically.  
+PulseAudio acts as the sound server.  PulseAudio combined with libasound2-dev binaries facilitate the capture of audio from the underlying ALSA system through our libraries.  After the installation of the above, start PulseAudio with following command:  
 ```
 pulseaudio --start
 ```
+The above command usually needs to be executed only once.  Normally, when the Pi starts next time, PulseAudio server also starts automatically.
 
 Now you can run the project. You can do so in 2 ways:
 - **Run as Docker container:**  This is the easier and simpler approach so that you do not have to download the code and compile it.  If you already have Docker installed, use the following command to run this project:
@@ -75,9 +88,9 @@ docker run --rm -it -p 8090:8090 \
   nejimonraveendran/rpispectrumanalyzer:v1
 ```
 
-If you do not have Docker installed, you can install Docker using the commands provided in the _run-docker.sh_ file provided in the source folder. 
+If you do not have Docker installed, you can install Docker using the commands provided in the _run-docker.sh_ file in the source code folder. 
 
-- **Run locally:**  You can clone this repo onto the Pi, open it in Visual Studio Code, build it, and run.  If you don't want to edit the code, you can use the commands provided in the _run-local.sh_ to install the dependencies, clone the repo, build the code, and then run it. 
+- **Run locally:**  You can clone this repo onto the Pi, open it in Visual Studio Code via SSH, build it, and run.  If you don't want to edit the code, you can use the commands provided in the _run-local.sh_ to install the dependencies, clone the repo, build the code, and then run it from the Terminal command line. 
 
 Regardless of which method you use, by default, this will run the application on port 8090.  If you are using Rasperry Pi Os Desktop, you access the application's web interface through the browser at the address:
 
@@ -95,7 +108,7 @@ Now play some audio on your Raspberry Pi, and you should be able to see the audi
 
 
 ## Connecting Bluetooth Audio Devices
-If you want to visualize Bluetooth audio from another device such as your phone, first you need to pair the device with the Pi. This can be done directly from Pi's desktop or via command line. If you want to do it via command line (e.g., SSH Terminal), use the following method to pair a new device.
+If you want to visualize Bluetooth audio from another device such as your phone, first you need to pair the device with the Pi. This can be done directly from Pi's desktop or via command line. If you want to do it via command line (e.g., SSH Terminal), use the following method to pair the new device:
 
 First of all, issue the command and press Enter:
 ```
@@ -115,7 +128,7 @@ The above command will start listing the Bluetooth devices around.  Look for the
 pair <mac_address>
 trust <mac_address>
 ```
-Once the device is successful paired, exit the prompt by typing:
+Once the device is successfully paired, exit the prompt by typing:
 ```
 exit 
 ```
@@ -131,11 +144,13 @@ If not already connected, you can connect an already paired device using the com
 bluetoothctl connect <mac_address>
 ```
 
-If you are connecting your phone, the above command will list Pi as a paired/connected device on the Phone. 
+If you are connecting your phone, the above command will list Pi as a paired/connected device on the Phone as well. 
 
 
 ## Command Line Reference
-The RpiSpectrumAnalyzer application can be started with different command line options to control its behavior.  The supported options are:
+The RpiSpectrumAnalyzer application can be started with different command line options to control its behavior.
+
+The supported options are:
 
 ``` --port ``` 
 
@@ -198,14 +213,33 @@ Specifies custom band frequencies in Hz as comma separated values surrounded by 
 
 ``` --led-display-wiring [serpentine, s | zigzag, z]```
 There are 2 types of LED wiring supported:
--  **Zig-Zag Wiring:** In this wiring the LED matrix is wired as below:
--  **Serpentine Wiring:** In this wiring the LED matrix is wired as below:
+-  **Zig-Zag Wiring:** This is the default. Use this option if your LED display is wired in a zig-zag fashion.  Refer to the [LED Display Setup](#led-display-setup---optional-reboot-required). This is especially useful if you are building the columns of the display by cutting pieces out of a WS2812B LED strip and soldering them.  
+-  **Serpentine Wiring:** LED matrices are usually wired in a serpentine fashion.  Use this option if you are using a readily available WS2812B LED matrix or if you wire the display in the serpentine fashion.
 
 Default is Zig-Zag wiring.
 
 Example usage (Serpentine):
 ```
 ./RpiSpectrumAnalyzer --led-display-wiring s
+```
+
+Note:  If you are running the Docker image, you can use the above commands as in the following example:
+
+```
+docker run --rm -it -p 8090:8090 \
+  --privileged \
+  --user $(id -u):$(id -g) \
+  --group-add $(getent group spi | cut -d: -f3) \
+  --env PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+  --env PULSE_COOKIE=/tmp/pulseaudio.cookie \
+  --volume ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+  --device /dev/snd \
+  nejimonraveendran/rpispectrumanalyzer:v1 \
+  --enable-led-display \
+  --led-display-cols 8 \
+  --led-display-levels 8 \
+  --bands "100, 500, 1000, 2000, 4000, 6000, 10000, 14000" \
+  --led-display-wiring serpentine
 ```
 
 ## Final Words
