@@ -4,12 +4,12 @@ This project implements an audio spectrum analyzer display using ESP32.
 ![Spectrum Analyzer](../Assets/Esp32-Spectrum-Analyzer-thumb.jpg)
 
 ## Features
-- **LED Display:**  Captures the audio and visualizes the audio frequencies as levels via WS2812B RGB LED Matrix. 
+- **LED Display:**  Captures the audio and visualizes the audio frequencies as levels via WS2812B RGB LED strip/matrix. 
 - **Configuration Web Portal** - Provides an integrated web portal that can be accessed via the IP address of the ESP32 and via the URL [http://sad.local](http://sad.local). The portal enables you to configure the display behavior and properties such as LED colors, transition speed, peak delay, amplification, LED brightness, etc.   
 
 ## How it Works
 The application does the following at a high level:
-- Captures analog audio through the ADC0 / I2S interface of the ESP32 (GPIO pin 36). 
+- Captures analog audio through the ADC / I2S interface of the ESP32 (GPIO pin 36). 
 - Performs Fast Fourier Transform (FFT) on the captured audio buffer and puts the frequencies into specified bands. ArduinoFFT library is used for FFT functions.
 - Visualizes the frequencies as bar display levels through WS2812B RGB LED strip connected to the GPIO pin 18. FastLED library is used as the LED driver.
 - Provides an integrated web portal, which runs on a dedicated core of the ESP32, to provide an interface to configure different properites and behaviors of the display.   
@@ -34,9 +34,9 @@ To run the project follow these instructions:
 - Connect ESP32 development board via USB port and flash it. 
 - Connect LED strip, audio source, etc., and test the setup.
 
-To access the configuration portal do the following:
+To access the configuration portal, do the following:
 - When you run the first time, if your ESP32 module has never connected to the local WiFi before, it will go into WiFi AP mode, waiting for the WiFi connection to be set up. In this case, look for a WiFi network named "SpectrumAnalyzer" from your mobile device.  Connect to it and complete the WiFi setup.   
-- After successful connection to the WiFi, make a note of the ESP32's IP address via the PlatfomIO's Serial monitor output.  Then, access the portal using a browser from a device connected to the same WiFi network.
+- After successful connection to the WiFi, make a note of the ESP32's IP address via the PlatfomIO's Serial monitor output.  Then, access the portal using a browser from a mobile device or computer connected to the same WiFi network.
 - If you do not know the IP address of the ESP32, you can use the URL [http://sad.local](http://sad.local).  Since this uses DNS multicast, it may not always work with certain devices such as certain Android phones, etc. 
 - If the above does not work either, you can still find out the IP address of your ESP32 through the connected devices page of your WiFi router.
 
