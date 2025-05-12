@@ -34,7 +34,7 @@ If you plan to connect WS2812B RGB LED strip or matrix, follow the instructions 
 - **LED Strip**: https://www.amazon.ca/WS2812B-Strip-Addressable-Pixel-Light/dp/B09P8MH56K
 - **LED Matrix**: https://www.amazon.ca/CANADUINO-Matrix-Fully-addressable-WS2812B/dp/B07PJQNCX6
 
-The LED display is is driven through the SPI interface of the Pi (GPIO pin 10). To configure SPI settings (Debian Bookworm OS):
+The LED display is driven through the SPI interface of the Pi (GPIO pin 10). To configure SPI settings (Debian Bookworm OS):
 - **Enable SPI protocol:**  Open _/boot/firmware/config.txt_ in a text editor such as Nano.  Look for the following lines.  If you do not find them there, add them at the end of the file:
 ```
 dtparam=spi=on
@@ -57,7 +57,7 @@ sudo reboot now
 To connect the WS2812B LED strip or matrix to the GPIO pin 10 (SPI), refer to the following diagram.  There are 2 types of wirings supported, as in the below image:
 ![Spectrum Analyzer](../Assets/Rpi-Wiring.jpg)
 
-Selection of the wiring is controlled through command-line arguments. Refer to the [Command Line Reference](#command-line-reference).
+Selection of the wiring can be controlled through command-line arguments. Refer to the [Command Line Reference](#command-line-reference).
 
 ## Running the project
 Before you can run the project, you must install the following prerequisites on the Pi:
@@ -92,13 +92,13 @@ If you do not have Docker installed, you can install Docker using the commands p
 
 - **Run locally:**  You can clone this repo onto the Pi, open it in Visual Studio Code via SSH, build it, and run.  If you don't want to edit the code, you can use the commands provided in the _run-local.sh_ to install the dependencies, clone the repo, build the code, and then run it from the Terminal command line. 
 
-Regardless of which method you use, by default, this will run the application on port 8090.  If you are using Rasperry Pi Os Desktop, you access the application's web interface through the browser at the address:
+Regardless of which method you use, by default, this will run the application on port 8090.  If you are using Rasperry Pi OS Desktop, you can access the application's web interface through the browser at the address:
 
 ```
 http://localhost:8090
 ```
 
-If you want to access from other devices on the same network, use the Pi's hostname or LAN IP address.  For example:
+If you want to access from other devices on the same network, use the Pi's host name or LAN IP address.  For example:
 
 ```
 http://raspberrypi.local:8090
@@ -122,7 +122,7 @@ discoverable on
 scan on
 ```
 
-The above command will start listing the Bluetooth devices around.  Look for the name of the device you want to pair with and note down the MAC address of the device once it is appears in the list.  Pair the device using the following commands:
+The above command will start listing the Bluetooth devices around.  Look for the name of the device you want to pair with and note down the MAC address of the device once it appears in the list.  Pair the device using the following commands:
 
 ```
 pair <mac_address>
@@ -144,7 +144,7 @@ If not already connected, you can connect an already paired device using the com
 bluetoothctl connect <mac_address>
 ```
 
-If you are connecting your phone, the above command will list Pi as a paired/connected device on the Phone as well. 
+If you are connecting your phone, the above command will list the Pi as a paired/connected device on the phone as well. 
 
 
 ## Command Line Reference
@@ -244,7 +244,7 @@ docker run --rm -it -p 8090:8090 \
 
 ## Final Words
 
-There are many things that can be implemented, but I have not done so because of the time constraints. Contributions are welcome.  Currently, I have not set up related settings.  However, if you are interested in contributing to this project, please let me know via opening an issue, etc., and I will consider setting up for contributions.  Some of the backlog I can think of:
+There are many more things that can be implemented in this project, but I have not done so because of the time constraints. Contributions are welcome.  Currently, I have not set up related settings.  However, if you are interested in contributing to this project, please let me know via opening an issue, etc., and I will consider setting up for contributions.  Some of the backlog I can think of:
 - Ability to persist the configuration/settings on the server side in a database.
 - More types of visualizations.
 - Support for more devices/platforms.
