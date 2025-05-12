@@ -6,9 +6,9 @@ This project implements an audio spectrum analyzer display on Raspberry Pi using
 ## Features
 ### 3 Types of Displays
 The spectrum analyzer display can plot the visualization output to 3 types of displays:
-- **Web Display:**  Display shown on a the home page of the application's integrated web portal (default port: 8090).  Web Display is enabled by default.
-- **Console/Terminal Display:**  Display directly on Pi's Terminal or the Terminal of a device connected via SSH (eg. Windows laptop).  Console Display is enabled by default.
-- **LED Display:**  Display via WS2812B RGB LED Matrix connected to the GPIO pin 10 of the Pi. LED Display is disabled by default.  Refer to the [LED Display Setup](#led-display-setup---optional-reboot-required) to see how to enable LED Display. 
+- **Web Display:**  Display shown on the home page of the application's integrated web portal (default port: 8090).  Web Display is enabled by default.
+- **Console/Terminal Display:**  Display directly on the Pi's Terminal or the Terminal of a device connected via SSH (eg. Windows laptop).  Console Display is enabled by default.
+- **LED Display:**  Display via WS2812B RGB LED strip or matrix connected to the GPIO pin 10 of the Pi. LED Display is disabled by default.  Refer to the [LED Display Setup](#led-display-setup---optional-reboot-required) to see how to enable LED Display. 
 
 ### Integrated Web Portal 
 - An integrated web portal runs on port 8090.  This portal can be accessed via http://localhost:8090 or via other devices on the local network through the Pi's host name (for e.g., http://raspberrypi.local:8090).
@@ -18,11 +18,11 @@ The spectrum analyzer display can plot the visualization output to 3 types of di
 ### Configurable via Command Line
 - **Turn on/off displays:** You can run all 3 types of displays at the same time or turn on/off one or more via command-line options.  Refer to the [Command Line Reference](#command-line-reference) section in this document for supported command line options. 
 - **Band selection:** You can configure frequency bands (Hz) via command line.
-- **Web portal port selection:** You can change the default port (8090) to another port via command line. 
+- **Web portal port selection:** You can change the default port (8090) to a custom port via command line. 
 
 ## How it Works
 The application does the following at a high level:
-- Captures the audio using ALSA (Advanced Linux Sound Architecture) APIs. I use [Alsa.NET C# nuget library](https://www.nuget.org/packages/Alsa.Net) for this. 
+- Captures the audio using ALSA (Advanced Linux Sound Architecture) APIs. We use [Alsa.NET C# nuget library](https://www.nuget.org/packages/Alsa.Net) for this. 
 - Performs Fast Fourier Transform (FFT) on the captured audio buffer using [FftSharp C# nuget library](https://www.nuget.org/packages/FftSharp) and puts the frequencies into specified bands.
 - Visualizes the frequencies as bar display levels through Web Display, Console/Terminal Display, and WS2812B RGB LED Display/Matrix.
 
