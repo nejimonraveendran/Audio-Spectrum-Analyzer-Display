@@ -34,8 +34,8 @@ If you plan to connect WS2812B RGB LED strip or matrix, follow the instructions 
 - **LED Strip**: https://www.amazon.ca/WS2812B-Strip-Addressable-Pixel-Light/dp/B09P8MH56K
 - **LED Matrix**: https://www.amazon.ca/CANADUINO-Matrix-Fully-addressable-WS2812B/dp/B07PJQNCX6
 
-The LED display is driven through the SPI interface of the Pi (GPIO pin 10). To configure SPI settings (Debian Bookworm OS):
-- **Enable SPI protocol:**  Open _/boot/firmware/config.txt_ in a text editor such as Nano.  Look for the following lines.  If you do not find them there, add them at the end of the file:
+The LED display is driven through the Serial Peripheral Interface (SPI) of the Pi (GPIO pin 10). To configure SPI settings (Debian Bookworm OS):
+- **Enable SPI interface:**  Open _/boot/firmware/config.txt_ in a text editor such as Nano.  Look for the following lines.  If you do not find them there, add them at the end of the file:
 ```
 dtparam=spi=on
 core_freq=250
